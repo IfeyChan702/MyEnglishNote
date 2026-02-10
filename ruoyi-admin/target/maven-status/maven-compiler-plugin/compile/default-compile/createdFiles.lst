@@ -1,0 +1,8 @@
+com/ruoyi/web/controller/system/SysIndexController.class
+com/ruoyi/web/controller/system/SysDeptController.class
+com/ruoyi/web/controller/common/CaptchaController.class
+com/ruoyi/web/controller/system/SysProfileController.class
+com/ruoyi/web/core/config/SwaggerConfig.class
+com/ruoyi/RuoYiServletInitializer.class
+com/ruoyi/web/controller/system/SysNoticeController.class
+com/ruoyi/web/controller/system/SysRegisterController.class

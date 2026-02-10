@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.NoteMapper">
+    
+    <resultMap type="EnglishNote" id="NoteResult">
+        <result property="id"    column="id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="content"    column="content"    />
+        <result property="embedding"    column="embedding"    />
+        <result property="embeddingModel"    column="embedding_model"    />
+        <result property="tags"    column="tags"    />
+        <result property="createTime"    column="created_at"    />
+        <result property="updateTime"    column="updated_at"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="similarityScore"    column="similarity_score"    />
+    </resultMap>
+
+    <sql id="selectNoteVo">
+        select id, user_id, content, embedding, embedding_model, tags, created_at, updated_at, del_flag 
+        from english_note
+    </sql>
+
+    <select id="selectNoteById" parameterType="Long" resultMap="NoteResult">
+        <include refid="selectNoteVo"/>
+        where id = #{id} and del_flag = '0'
+    </select>
+
+    <select id="selectNoteList" parameterType="EnglishNote" resultMap="NoteResult">
+        <include refid="selectNoteVo"/>
+        <where>
+            del_flag = '0'
+            <if test="userId != null">and user_id = #{userId}</if>
+            <if test="content != null and content != ''">
+                and content like concat('%', #{content}, '%')
+            </if>
+            <if test="tags != null and tags != ''">
+                and tags like concat('%', #{tags}, '%')
+            </if>
+        </where>
+        order by created_at desc
+    </select>
+
+    <select id="selectNoteListByUserId" parameterType="Long" resultMap="NoteResult">
+        <include refid="selectNoteVo"/>
+        where user_id = #{userId} and del_flag = '0'
+        order by created_at desc
+    </select>
+
+    <insert id="insertNote" parameterType="EnglishNote" useGeneratedKeys="true" keyProperty="id">
+        insert into english_note
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="content != null and content != ''">content,</if>
+            <if test="embedding != null">embedding,</if>
+            <if test="embeddingModel != null">embedding_model,</if>
+            <if test="tags != null">tags,</if>
+            created_at,
+            updated_at
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="content != null and content != ''">#{content},</if>
+            <if test="embedding != null">#{embedding},</if>
+            <if test="embeddingModel != null">#{embeddingModel},</if>
+            <if test="tags != null">#{tags},</if>
+            now(),
+            now()
+        </trim>
+    </insert>
+
+    <update id="updateNote" parameterType="EnglishNote">
+        update english_note
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="content != null and content != ''">content = #{content},</if>
+            <if test="embedding != null">embedding = #{embedding},</if>
+            <if test="embeddingModel != null">embedding_model = #{embeddingModel},</if>
+            <if test="tags != null">tags = #{tags},</if>
+            updated_at = now()
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteNoteById" parameterType="Long">
+        update english_note set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteNoteByIds" parameterType="Long">
+        update english_note set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="searchSimilarNotes" resultMap="NoteResult">
+        select 
+            id, user_id, content, embedding, embedding_model, tags, 
+            created_at, updated_at, del_flag
+        from english_note
+        where user_id = #{userId} 
+            and del_flag = '0'
+            and embedding is not null
+        order by created_at desc
+    </select>
+
+    <select id="countNotesByUserId" parameterType="Long" resultType="int">
+        select count(*) from english_note 
+        where user_id = #{userId} and del_flag = '0'
+    </select>
+
+</mapper>

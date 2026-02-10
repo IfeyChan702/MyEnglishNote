@@ -80,12 +80,8 @@ public class RAGServiceImpl implements IRAGService {
         }
         
         // 使用默认值
-        if (threshold == null) {
-            threshold = defaultThreshold;
-        }
-        if (maxResults == null) {
-            maxResults = defaultMaxResults;
-        }
+        final double finalThreshold = (threshold == null) ? defaultThreshold : threshold;
+        final int finalMaxResults = (maxResults == null) ? defaultMaxResults : maxResults;
         
         long startTime = System.currentTimeMillis();
         
@@ -132,7 +128,7 @@ public class RAGServiceImpl implements IRAGService {
             
             // 5. 过滤相似度阈值
             List<EnglishNote> filteredNotes = notesWithEmbedding.stream()
-                .filter(note -> note.getSimilarityScore() != null && note.getSimilarityScore() >= threshold)
+                .filter(note -> note.getSimilarityScore() != null && note.getSimilarityScore() >= finalThreshold)
                 .collect(Collectors.toList());
             
             // 6. 按相似度降序排序
@@ -140,14 +136,14 @@ public class RAGServiceImpl implements IRAGService {
             
             // 7. 限制返回结果数量
             List<EnglishNote> results = filteredNotes.stream()
-                .limit(maxResults)
+                .limit(finalMaxResults)
                 .collect(Collectors.toList());
             
             long totalTime = System.currentTimeMillis() - startTime;
             
             if (performanceMonitorEnabled) {
                 log.info("Search completed: found {} similar notes (threshold: {}) in {}ms [embedding: {}ms, db: {}ms, similarity: {}ms]",
-                         results.size(), threshold, totalTime, embeddingTime, dbTime, similarityTime);
+                         results.size(), finalThreshold, totalTime, embeddingTime, dbTime, similarityTime);
                 
                 if (totalTime > slowQueryThresholdMs) {
                     log.warn("SLOW QUERY: Search took {}ms (threshold: {}ms)", totalTime, slowQueryThresholdMs);
