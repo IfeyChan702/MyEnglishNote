@@ -1,5 +1,10 @@
 # RAG 模块配置
 rag:
+  # 数据库配置
+  database:
+    # 数据库类型选择: mysql 或 postgresql
+    type: mysql
+  
   # Deepseek API 配置
   deepseek:
     # API Key (从环境变量或配置中心获取，避免硬编码)
@@ -27,6 +32,27 @@ rag:
     similarity-threshold: 0.7
     # 检索结果最大数量
     max-results: 5
+  
+  # 相似度算法配置
+  similarity:
+    # 算法选择: cosine (余弦相似度), euclidean (欧氏距离), manhattan (曼哈顿距离)
+    algorithm: cosine
+  
+  # 缓存配置
+  cache:
+    # 是否启用缓存
+    enabled: false
+    # 缓存过期时间(分钟)
+    ttl-minutes: 60
+    # 最大缓存条目数
+    max-size: 10000
+  
+  # 性能监控配置
+  performance:
+    # 是否启用性能监控
+    monitor-enabled: true
+    # 慢查询阈值(毫秒)
+    slow-query-threshold-ms: 1000
   
   # SRS (间隔重复) 算法配置
   srs:

@@ -96,15 +96,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="searchSimilarNotes" resultMap="NoteResult">
         select 
             id, user_id, content, embedding, embedding_model, tags, 
-            created_at, updated_at, del_flag,
-            cosine_similarity(embedding, #{embedding}) as similarity_score
+            created_at, updated_at, del_flag
         from english_note
         where user_id = #{userId} 
             and del_flag = '0'
             and embedding is not null
-        having similarity_score >= #{threshold}
-        order by similarity_score desc
-        limit #{limit}
+        order by created_at desc
     </select>
 
     <select id="countNotesByUserId" parameterType="Long" resultType="int">

@@ -1,0 +1,92 @@
+-- ========================================
+-- PostgreSQL pgvector Extension Setup
+-- ========================================
+-- 
+-- 此脚本用于安装和配置 pgvector 扩展
+-- pgvector 是 PostgreSQL 的向量扩展，提供高效的向量存储和相似度搜索
+-- 
+-- 要求：
+-- - PostgreSQL 12 或更高版本
+-- - pgvector 0.4.0 或更高版本
+-- 
+-- ========================================
+
+-- 1. 安装 pgvector 扩展 (需要超级用户权限)
+-- 如果未安装，请先按照以下步骤安装：
+-- 
+-- Ubuntu/Debian:
+--   sudo apt install postgresql-<version>-pgvector
+-- 
+-- 或从源代码编译:
+--   git clone --branch v0.5.1 https://github.com/pgvector/pgvector.git
+--   cd pgvector
+--   make
+--   sudo make install
+-- 
+-- ========================================
+
+-- 创建扩展
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- 验证扩展已安装
+SELECT * FROM pg_extension WHERE extname = 'vector';
+
+-- ========================================
+-- 查看 pgvector 支持的操作符
+-- ========================================
+-- 
+-- 距离操作符:
+-- <->  : L2 distance (欧氏距离)
+-- <#>  : Inner product (内积)
+-- <=>  : Cosine distance (余弦距离, = 1 - cosine similarity)
+-- 
+-- 示例:
+-- SELECT embedding <-> '[1,2,3]' AS l2_distance FROM table;
+-- SELECT embedding <#> '[1,2,3]' AS inner_product FROM table;
+-- SELECT embedding <=> '[1,2,3]' AS cosine_distance FROM table;
+-- 
+-- ========================================
+
+-- ========================================
+-- 索引类型
+-- ========================================
+-- 
+-- 1. IVFFlat 索引 (适合大型数据集)
+--    - 使用倒排文件加速搜索
+--    - lists 参数建议设置为 rows / 1000 (最少 10)
+--    CREATE INDEX ON table USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+-- 
+-- 2. HNSW 索引 (hierarchical navigable small world)
+--    - 更高的召回率
+--    - 更快的查询速度
+--    CREATE INDEX ON table USING hnsw (embedding vector_cosine_ops);
+-- 
+-- ========================================
+
+-- 测试查询示例
+-- SELECT 
+--     id, 
+--     content,
+--     embedding <=> '[0.1, 0.2, ...]'::vector AS cosine_distance
+-- FROM english_note
+-- WHERE user_id = 1 AND del_flag = '0'
+-- ORDER BY embedding <=> '[0.1, 0.2, ...]'::vector
+-- LIMIT 5;
+
+-- ========================================
+-- 性能优化建议
+-- ========================================
+-- 
+-- 1. 调整 work_mem 以提高索引构建速度
+--    SET work_mem = '1GB';
+-- 
+-- 2. 使用 VACUUM ANALYZE 优化查询
+--    VACUUM ANALYZE english_note;
+-- 
+-- 3. 监控查询性能
+--    EXPLAIN ANALYZE 
+--    SELECT * FROM english_note 
+--    ORDER BY embedding <=> '[...]'::vector 
+--    LIMIT 10;
+-- 
+-- ========================================

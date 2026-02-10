@@ -5,8 +5,10 @@ import com.ruoyi.system.domain.dto.NoteDTO;
 import com.ruoyi.system.domain.dto.RAGResponse;
 import com.ruoyi.system.mapper.NoteMapper;
 import com.ruoyi.system.service.IDeepseekService;
+import com.ruoyi.system.service.IEmbeddingService;
 import com.ruoyi.system.service.IRAGService;
 import com.ruoyi.system.util.EmbeddingUtil;
+import com.ruoyi.system.util.VectorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +17,13 @@ import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * RAG Service实现
+ * 使用应用层向量计算替代数据库存储函数
  * 
  * @author ruoyi
  * @date 2025-02-10
@@ -34,16 +39,29 @@ public class RAGServiceImpl implements IRAGService {
     @Autowired
     private NoteMapper noteMapper;
     
+    @Autowired
+    private IEmbeddingService embeddingService;
+    
     @Value("${rag.vector.similarity-threshold:0.7}")
     private Double defaultThreshold;
     
     @Value("${rag.vector.max-results:5}")
     private Integer defaultMaxResults;
     
+    @Value("${rag.similarity.algorithm:cosine}")
+    private String similarityAlgorithm;
+    
+    @Value("${rag.performance.monitor-enabled:true}")
+    private boolean performanceMonitorEnabled;
+    
+    @Value("${rag.performance.slow-query-threshold-ms:1000}")
+    private long slowQueryThresholdMs;
+    
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     
     /**
      * 向量检索相关笔记
+     * 使用应用层并行计算相似度
      * 
      * @param userId 用户ID
      * @param query 查询文本
@@ -69,27 +87,135 @@ public class RAGServiceImpl implements IRAGService {
             maxResults = defaultMaxResults;
         }
         
+        long startTime = System.currentTimeMillis();
+        
         log.debug("Searching notes for user {} with query: {}", userId, query);
         
         try {
             // 1. 生成查询向量
+            long embeddingStartTime = System.currentTimeMillis();
             List<Double> queryEmbedding = deepseekService.embedding(query);
-            String queryEmbeddingJson = EmbeddingUtil.embeddingToJson(queryEmbedding);
+            long embeddingTime = System.currentTimeMillis() - embeddingStartTime;
             
-            // 2. 使用向量检索相关笔记
-            List<EnglishNote> notes = noteMapper.searchSimilarNotes(
-                    userId, 
-                    queryEmbeddingJson, 
-                    threshold, 
-                    maxResults
-            );
+            if (performanceMonitorEnabled) {
+                log.info("Generated query embedding in {}ms", embeddingTime);
+            }
             
-            log.debug("Found {} similar notes", notes.size());
+            // 2. 从数据库获取用户所有笔记（带embedding）
+            long dbStartTime = System.currentTimeMillis();
+            List<EnglishNote> allNotes = noteMapper.selectNoteListByUserId(userId);
+            long dbTime = System.currentTimeMillis() - dbStartTime;
             
-            return notes;
+            if (performanceMonitorEnabled) {
+                log.info("Retrieved {} notes from database in {}ms", allNotes.size(), dbTime);
+            }
+            
+            // 3. 过滤有embedding的笔记
+            List<EnglishNote> notesWithEmbedding = allNotes.stream()
+                .filter(note -> note.getEmbedding() != null && !note.getEmbedding().trim().isEmpty())
+                .collect(Collectors.toList());
+            
+            if (notesWithEmbedding.isEmpty()) {
+                log.warn("No notes with embeddings found for user {}", userId);
+                return new ArrayList<>();
+            }
+            
+            // 4. 在应用层并行计算相似度
+            long similarityStartTime = System.currentTimeMillis();
+            computeSimilarityScores(queryEmbedding, notesWithEmbedding);
+            long similarityTime = System.currentTimeMillis() - similarityStartTime;
+            
+            if (performanceMonitorEnabled) {
+                log.info("Calculated similarity for {} notes in {}ms using {} algorithm", 
+                         notesWithEmbedding.size(), similarityTime, similarityAlgorithm);
+            }
+            
+            // 5. 过滤相似度阈值
+            List<EnglishNote> filteredNotes = notesWithEmbedding.stream()
+                .filter(note -> note.getSimilarityScore() != null && note.getSimilarityScore() >= threshold)
+                .collect(Collectors.toList());
+            
+            // 6. 按相似度降序排序
+            filteredNotes.sort(Comparator.comparing(EnglishNote::getSimilarityScore).reversed());
+            
+            // 7. 限制返回结果数量
+            List<EnglishNote> results = filteredNotes.stream()
+                .limit(maxResults)
+                .collect(Collectors.toList());
+            
+            long totalTime = System.currentTimeMillis() - startTime;
+            
+            if (performanceMonitorEnabled) {
+                log.info("Search completed: found {} similar notes (threshold: {}) in {}ms [embedding: {}ms, db: {}ms, similarity: {}ms]",
+                         results.size(), threshold, totalTime, embeddingTime, dbTime, similarityTime);
+                
+                if (totalTime > slowQueryThresholdMs) {
+                    log.warn("SLOW QUERY: Search took {}ms (threshold: {}ms)", totalTime, slowQueryThresholdMs);
+                }
+            }
+            
+            log.debug("Found {} similar notes", results.size());
+            
+            return results;
+            
         } catch (Exception e) {
             log.error("Failed to search notes: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to search notes: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * 在应用层计算相似度（并行处理）
+     * 
+     * @param queryEmbedding 查询向量
+     * @param notes 笔记列表
+     */
+    private void computeSimilarityScores(List<Double> queryEmbedding, List<EnglishNote> notes) {
+        if (queryEmbedding == null || notes == null || notes.isEmpty()) {
+            return;
+        }
+        
+        // 使用并行流处理
+        notes.parallelStream().forEach(note -> {
+            try {
+                List<Double> noteEmbedding = embeddingService.jsonToEmbedding(note.getEmbedding());
+                
+                if (noteEmbedding != null && noteEmbedding.size() == queryEmbedding.size()) {
+                    double similarity = calculateSimilarity(queryEmbedding, noteEmbedding);
+                    note.setSimilarityScore(similarity);
+                } else {
+                    log.warn("Invalid embedding for note {}: dimension mismatch", note.getId());
+                    note.setSimilarityScore(0.0);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to calculate similarity for note {}: {}", note.getId(), e.getMessage());
+                note.setSimilarityScore(0.0);
+            }
+        });
+    }
+    
+    /**
+     * 根据配置的算法计算相似度
+     * 
+     * @param vector1 向量1
+     * @param vector2 向量2
+     * @return 相似度/距离
+     */
+    private double calculateSimilarity(List<Double> vector1, List<Double> vector2) {
+        switch (similarityAlgorithm.toLowerCase()) {
+            case "cosine":
+                return VectorUtil.cosineSimilarity(vector1, vector2);
+            case "euclidean":
+                // 欧氏距离需要转换为相似度（距离越小越相似）
+                double distance = VectorUtil.euclideanDistance(vector1, vector2);
+                return 1.0 / (1.0 + distance);
+            case "manhattan":
+                // 曼哈顿距离需要转换为相似度
+                double manhattanDist = VectorUtil.manhattanDistance(vector1, vector2);
+                return 1.0 / (1.0 + manhattanDist);
+            default:
+                log.warn("Unknown similarity algorithm: {}, using cosine", similarityAlgorithm);
+                return VectorUtil.cosineSimilarity(vector1, vector2);
         }
     }
     
