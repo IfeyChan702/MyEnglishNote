@@ -1,0 +1,59 @@
+# RAG 模块配置
+rag:
+  # Deepseek API 配置
+  deepseek:
+    # API Key (从环境变量或配置中心获取，避免硬编码)
+    api-key: ${DEEPSEEK_API_KEY:your-api-key-here}
+    # API 端点
+    api-endpoint: https://api.deepseek.com
+    # Embedding API 路径
+    embedding-path: /v1/embeddings
+    # Chat API 路径
+    chat-path: /v1/chat/completions
+    # 嵌入模型名称
+    embedding-model: deepseek-embedding
+    # 对话模型名称
+    chat-model: deepseek-chat
+    # 请求超时时间(秒)
+    timeout: 30
+    # 最大重试次数
+    max-retries: 3
+  
+  # 向量配置
+  vector:
+    # 向量维度 (Deepseek embedding 默认维度)
+    dimension: 1536
+    # 相似度阈值 (0-1之间，越高要求越严格)
+    similarity-threshold: 0.7
+    # 检索结果最大数量
+    max-results: 5
+  
+  # SRS (间隔重复) 算法配置
+  srs:
+    # 初始间隔(天)
+    initial-interval: 1
+    # 最小难度系数
+    min-easiness: 1.3
+    # 最大难度系数
+    max-easiness: 2.5
+    # 默认难度系数
+    default-easiness: 2.5
+  
+  # RAG 提示词配置
+  prompt:
+    # 系统提示词
+    system: |
+      你是一个专业的英语学习助手。请基于用户的学习笔记，帮助用户复习和学习英语。
+      当用户提问时，请参考相关的学习笔记，给出准确、详细的回答。
+      回答应该包括：
+      1. 直接回答用户的问题
+      2. 相关的例句和用法
+      3. 记忆技巧或学习建议
+    # 上下文提示模板
+    context-template: |
+      以下是用户的相关学习笔记：
+      {context}
+      
+      用户问题：{question}
+      
+      请基于上述笔记回答用户的问题。
