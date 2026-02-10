@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.ReviewMapper">
+    
+    <resultMap type="ReviewRecord" id="ReviewRecordResult">
+        <result property="id"    column="id"    />
+        <result property="noteId"    column="note_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="quality"    column="quality"    />
+        <result property="easinessFactor"    column="easiness_factor"    />
+        <result property="intervalDays"    column="interval_days"    />
+        <result property="repetitions"    column="repetitions"    />
+        <result property="nextReviewDate"    column="next_review_date"    />
+        <result property="reviewedAt"    column="reviewed_at"    />
+        <result property="noteContent"    column="note_content"    />
+    </resultMap>
+
+    <sql id="selectReviewRecordVo">
+        select id, note_id, user_id, quality, easiness_factor, interval_days, 
+               repetitions, next_review_date, reviewed_at
+        from review_record
+    </sql>
+
+    <select id="selectReviewRecordById" parameterType="Long" resultMap="ReviewRecordResult">
+        <include refid="selectReviewRecordVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectReviewRecordList" parameterType="ReviewRecord" resultMap="ReviewRecordResult">
+        <include refid="selectReviewRecordVo"/>
+        <where>
+            <if test="noteId != null">and note_id = #{noteId}</if>
+            <if test="userId != null">and user_id = #{userId}</if>
+            <if test="quality != null">and quality = #{quality}</if>
+        </where>
+        order by reviewed_at desc
+    </select>
+
+    <select id="selectLatestRecordByNoteId" parameterType="Long" resultMap="ReviewRecordResult">
+        <include refid="selectReviewRecordVo"/>
+        where note_id = #{noteId}
+        order by reviewed_at desc
+        limit 1
+    </select>
+
+    <select id="selectDueReviews" resultMap="ReviewRecordResult">
+        select 
+            r.id, r.note_id, r.user_id, r.quality, r.easiness_factor, 
+            r.interval_days, r.repetitions, r.next_review_date, r.reviewed_at,
+            n.content as note_content
+        from review_record r
+        inner join english_note n on r.note_id = n.id
+        where r.user_id = #{userId}
+            and r.next_review_date <![CDATA[ <= ]]> #{currentDate}
+            and n.del_flag = '0'
+        order by r.next_review_date asc
+        <if test="limit != null">
+            limit #{limit}
+        </if>
+    </select>
+
+    <insert id="insertReviewRecord" parameterType="ReviewRecord" useGeneratedKeys="true" keyProperty="id">
+        insert into review_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="noteId != null">note_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="quality != null">quality,</if>
+            <if test="easinessFactor != null">easiness_factor,</if>
+            <if test="intervalDays != null">interval_days,</if>
+            <if test="repetitions != null">repetitions,</if>
+            <if test="nextReviewDate != null">next_review_date,</if>
+            reviewed_at
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="noteId != null">#{noteId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="quality != null">#{quality},</if>
+            <if test="easinessFactor != null">#{easinessFactor},</if>
+            <if test="intervalDays != null">#{intervalDays},</if>
+            <if test="repetitions != null">#{repetitions},</if>
+            <if test="nextReviewDate != null">#{nextReviewDate},</if>
+            now()
+        </trim>
+    </insert>
+
+    <update id="updateReviewRecord" parameterType="ReviewRecord">
+        update review_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="quality != null">quality = #{quality},</if>
+            <if test="easinessFactor != null">easiness_factor = #{easinessFactor},</if>
+            <if test="intervalDays != null">interval_days = #{intervalDays},</if>
+            <if test="repetitions != null">repetitions = #{repetitions},</if>
+            <if test="nextReviewDate != null">next_review_date = #{nextReviewDate},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteReviewRecordById" parameterType="Long">
+        delete from review_record where id = #{id}
+    </delete>
+
+    <delete id="deleteReviewRecordByNoteId" parameterType="Long">
+        delete from review_record where note_id = #{noteId}
+    </delete>
+
+    <select id="countDueReviews" resultType="int">
+        select count(*)
+        from review_record r
+        inner join english_note n on r.note_id = n.id
+        where r.user_id = #{userId}
+            and r.next_review_date <![CDATA[ <= ]]> #{currentDate}
+            and n.del_flag = '0'
+    </select>
+
+</mapper>
