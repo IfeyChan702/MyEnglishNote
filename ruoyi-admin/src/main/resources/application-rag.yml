@@ -3,7 +3,7 @@ rag:
   # Deepseek API 配置
   deepseek:
     # API Key (从环境变量或配置中心获取，避免硬编码)
-    api-key: ${DEEPSEEK_API_KEY:your-api-key-here}
+    api-key: ${DEEPSEEK_API_KEY:sk-8013ec5e6abe48cdb7015ae737ec10bf}
     # API 端点
     api-endpoint: https://api.deepseek.com
     # Embedding API 路径
