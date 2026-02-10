@@ -1,0 +1,20 @@
+##  創建文件  vi /etc/systemd/system/check-amazone-api.service
+[Unit]
+Description=Check API and Restart Service if Needed
+After=network.target
+
+[Service]
+ExecStart=/opt/ifey/amazonepay/jar/check_api.sh
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+
+
+sudo systemctl daemon-reload
+sudo systemctl enable check-amazone-api.service
+sudo systemctl start check-amazone-api.service
