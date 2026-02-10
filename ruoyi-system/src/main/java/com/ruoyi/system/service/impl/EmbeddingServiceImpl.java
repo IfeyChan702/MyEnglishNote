@@ -158,10 +158,12 @@ public class EmbeddingServiceImpl implements IEmbeddingService {
             return;
         }
         
-        // 检查缓存大小
+        // 检查缓存大小，实现简单的LRU（移除最早的条目）
         if (embeddingCache.size() >= maxCacheSize) {
-            log.warn("Cache size limit reached ({}), clearing cache", maxCacheSize);
-            clearCache();
+            // 移除第一个条目（最早加入的）
+            String firstKey = embeddingCache.keySet().iterator().next();
+            embeddingCache.remove(firstKey);
+            log.debug("Cache size limit reached, removed oldest entry: {}", firstKey);
         }
         
         embeddingCache.put(key, new ArrayList<>(embedding));

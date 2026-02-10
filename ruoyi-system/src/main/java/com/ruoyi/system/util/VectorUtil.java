@@ -386,15 +386,7 @@ public class VectorUtil {
             return "";
         }
         
-        // 使用向量的前几个值和长度生成简单的键
-        // 注意：这不是完美的哈希，但对于缓存足够了
-        StringBuilder sb = new StringBuilder();
-        sb.append(vector.size()).append("_");
-        int sampleSize = Math.min(5, vector.size());
-        for (int i = 0; i < sampleSize; i++) {
-            sb.append(String.format("%.4f", vector.get(i))).append("_");
-        }
-        
-        return sb.toString();
+        // 使用hashCode生成更可靠的缓存键
+        return String.valueOf(vector.hashCode());
     }
 }

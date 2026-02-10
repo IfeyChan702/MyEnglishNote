@@ -98,6 +98,8 @@ public class RAGServiceImpl implements IRAGService {
             }
             
             // 2. 从数据库获取用户所有笔记（带embedding）
+            // 注意：对于大量笔记（>10万），考虑实现分页或流式处理
+            // 当前实现适用于中小型数据集（<10万笔记）
             long dbStartTime = System.currentTimeMillis();
             List<EnglishNote> allNotes = noteMapper.selectNoteListByUserId(userId);
             long dbTime = System.currentTimeMillis() - dbStartTime;
