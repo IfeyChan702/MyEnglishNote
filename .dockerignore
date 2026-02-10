@@ -1,0 +1,54 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+
+# Build artifacts
+target/
+build/
+out/
+*.jar
+*.war
+*.ear
+*.class
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Documentation
+*.md
+LICENSE
+
+# Frontend
+ruoyi-ui/
+flutter_app/node_modules/
+flutter_app/.dart_tool/
+flutter_app/build/
+
+# Test files
+**/test/
+**/*Test.java
+**/*Tests.java
+
+# Other
+bin/
+.mvn/
+mvnw
+mvnw.cmd

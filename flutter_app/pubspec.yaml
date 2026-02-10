@@ -1,0 +1,59 @@
+name: myenglishnote
+description: A comprehensive English learning note-taking app with RAG search and SRS review system.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI Components
+  cupertino_icons: ^1.0.6
+  flutter_staggered_animations: ^1.1.1
+  cached_network_image: ^3.3.1
+  lottie: ^3.1.0
+
+  # API and Network
+  http: ^1.1.0
+  dio: ^5.4.0
+
+  # State Management
+  provider: ^6.1.1
+  flutter_riverpod: ^2.4.9
+
+  # Local Storage
+  shared_preferences: ^2.2.2
+  flutter_secure_storage: ^9.0.0
+
+  # JSON Serialization
+  json_annotation: ^4.8.1
+
+  # Time and Date
+  intl: ^0.18.1
+
+  # Validation
+  email_validator: ^2.1.17
+
+  # Logging
+  logger: ^2.0.2+1
+
+  # Permissions
+  permission_handler: ^11.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  build_runner: ^2.4.7
+  json_serializable: ^6.7.1
+
+flutter:
+  uses-material-design: true
+  
+  # Add assets if needed
+  # assets:
+  #   - assets/images/
+  #   - assets/animations/
