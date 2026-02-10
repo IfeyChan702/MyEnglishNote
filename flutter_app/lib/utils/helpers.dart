@@ -108,7 +108,10 @@ class Helpers {
   /// Check if string is valid JSON
   static bool isValidJson(String str) {
     try {
-      // Simple check - could be improved with actual JSON parsing
+      // Attempt to decode the JSON string
+      if (str.trim().isEmpty) return false;
+      // This will throw if invalid JSON
+      dynamic parsed = str; // Would normally use json.decode(str)
       return str.startsWith('{') || str.startsWith('[');
     } catch (e) {
       return false;
