@@ -87,7 +87,7 @@ public class RAGController extends BaseController {
             errorResponse.setErrorMessage(e.getMessage());
             errorResponse.setProcessingTime(0L);
             
-            return error(errorResponse);
+            return error(String.valueOf(errorResponse));
         }
     }
     
@@ -120,7 +120,7 @@ public class RAGController extends BaseController {
             errorResponse.setErrorMessage(e.getMessage());
             errorResponse.setProcessingTime(0L);
             
-            return error(errorResponse);
+            return error(String.valueOf(errorResponse));
         }
     }
 }

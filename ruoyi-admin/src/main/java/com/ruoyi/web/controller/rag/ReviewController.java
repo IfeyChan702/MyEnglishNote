@@ -43,7 +43,7 @@ public class ReviewController extends BaseController {
             List<ReviewRecord> reviews = reviewService.getNextReviewItems(userId, limit);
             
             if (reviews == null || reviews.isEmpty()) {
-                return success("暂无待复习项目", null);
+                return success("暂无待复习项目");
             }
             
             // 如果只请求一个，返回单个对象；否则返回列表
