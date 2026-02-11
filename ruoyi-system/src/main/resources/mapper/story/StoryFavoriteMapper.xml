@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.StoryFavoriteMapper">
+    
+    <resultMap type="com.ruoyi.system.domain.StoryFavorite" id="StoryFavoriteResult">
+        <result property="id"    column="id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="storyId"    column="story_id"    />
+        <result property="createdAt"    column="created_at"    />
+    </resultMap>
+
+    <sql id="selectStoryFavoriteVo">
+        select id, user_id, story_id, created_at from story_favorite
+    </sql>
+
+    <select id="selectStoryFavoriteById" parameterType="Long" resultMap="StoryFavoriteResult">
+        <include refid="selectStoryFavoriteVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectFavoriteStoryIdsByUserId" parameterType="Long" resultType="Long">
+        select story_id from story_favorite where user_id = #{userId}
+    </select>
+
+    <select id="selectByUserIdAndStoryId" resultMap="StoryFavoriteResult">
+        <include refid="selectStoryFavoriteVo"/>
+        where user_id = #{userId} and story_id = #{storyId}
+    </select>
+
+    <insert id="insertStoryFavorite" parameterType="com.ruoyi.system.domain.StoryFavorite" useGeneratedKeys="true" keyProperty="id">
+        insert into story_favorite (user_id, story_id, created_at)
+        values (#{userId}, #{storyId}, now())
+    </insert>
+
+    <delete id="deleteStoryFavoriteById" parameterType="Long">
+        delete from story_favorite where id = #{id}
+    </delete>
+
+    <delete id="deleteByUserIdAndStoryId">
+        delete from story_favorite where user_id = #{userId} and story_id = #{storyId}
+    </delete>
+
+    <select id="countFavoritesByUserId" parameterType="Long" resultType="int">
+        select count(*) from story_favorite where user_id = #{userId}
+    </select>
+
+</mapper>
