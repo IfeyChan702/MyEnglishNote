@@ -15,7 +15,7 @@ dependencies:
   flutter_staggered_animations: ^1.1.1
   cached_network_image: ^3.3.1
   lottie: ^3.1.0
-
+  uuid: ^4.0.0  # 添加这行
   # API and Network
   http: ^1.1.0
   dio: ^5.4.0

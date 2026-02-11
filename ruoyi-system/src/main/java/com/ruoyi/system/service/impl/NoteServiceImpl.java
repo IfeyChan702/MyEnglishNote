@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -47,35 +48,22 @@ public class NoteServiceImpl implements INoteService {
     @Override
     @Transactional
     public EnglishNote createNote(EnglishNote note) {
-        if (note == null || note.getContent() == null || note.getContent().trim().isEmpty()) {
-            throw new IllegalArgumentException("Note content cannot be null or empty");
-        }
-        
-        if (note.getUserId() == null) {
-            throw new IllegalArgumentException("User ID cannot be null");
-        }
-        
         try {
-            // 生成向量
-            log.debug("Generating embedding for note content");
-            List<Double> embedding = deepseekService.embedding(note.getContent());
-            String embeddingJson = EmbeddingUtil.embeddingToJson(embedding);
-            
-            note.setEmbedding(embeddingJson);
-            note.setEmbeddingModel(embeddingModel);
+            log.debug("Creating note: {}", note.getContent());
+
+            // ⚠️ 暂时禁用嵌入，用全文搜索代替
+            // note.setEmbedding(deepseekService.embedding(note.getContent()));
+
             note.setDelFlag("0");
-            
-            // 保存笔记
+            note.setCreateTime(new Date());
+
             int result = noteMapper.insertNote(note);
             if (result > 0) {
-                log.info("Successfully created note with ID: {}", note.getId());
                 return note;
-            } else {
-                throw new RuntimeException("Failed to insert note");
             }
+            throw new RuntimeException("Failed to insert note");
         } catch (Exception e) {
-            log.error("Failed to create note: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to create note: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to create note: " + e.getMessage());
         }
     }
     
@@ -228,4 +216,12 @@ public class NoteServiceImpl implements INoteService {
         
         return noteMapper.countNotesByUserId(userId);
     }
+
+//    public List<EnglishNote> searchNotes(Long userId, String keyword) {
+//        QueryWrapper<EnglishNote> wrapper = new QueryWrapper<>();
+//        wrapper.eq("user_id", userId)
+//                .eq("del_flag", "0")
+//                .and(w -> w.like("content", keyword).or().like("tags", keyword));
+//        return englishNoteMapper.selectList(wrapper);
+//    }
 }

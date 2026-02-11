@@ -67,6 +67,23 @@ public class SysLoginController
         ajax.put(Constants.TOKEN, token);
         return ajax;
     }
+    /**
+     * 登录方法
+     *
+     * @param loginBody 登录信息 没有验证码的登录
+     * @return 结果
+     */
+    @PostMapping("/loginmobile")
+    public AjaxResult loginmobile(@RequestBody LoginBody loginBody)
+    {
+        AjaxResult ajax = AjaxResult.success();
+        // 生成令牌
+        String token = loginService.loginMobile(loginBody.getUsername(), loginBody.getPassword(),
+                loginBody.getUuid(),loginBody.getIsSysLogin());
+        ajax.put(Constants.TOKEN, token);
+        return ajax;
+    }
+
 
     /**
      * 获取用户信息

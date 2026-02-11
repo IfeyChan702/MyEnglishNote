@@ -7,7 +7,7 @@ class AppConstants {
   static const String apiPrefix = '/api';
   
   // API Endpoints
-  static const String loginEndpoint = '/login';
+  static const String loginEndpoint = '/loginmobile';
   static const String registerEndpoint = '/register';
   static const String noteListEndpoint = '$apiPrefix/note/list';
   static const String noteAddEndpoint = '$apiPrefix/note/add';

@@ -67,4 +67,6 @@ public interface INoteService {
      * @return 笔记数量
      */
     int countNotes(Long userId);
+
+//    public List<EnglishNote> searchNotes(Long userId, String keyword);
 }

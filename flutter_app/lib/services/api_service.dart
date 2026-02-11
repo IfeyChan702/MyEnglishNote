@@ -6,7 +6,7 @@ import '../models/review_record_model.dart';
 import '../models/rag_response_model.dart';
 import '../utils/constants.dart';
 import 'auth_service.dart';
-
+import 'package:uuid/uuid.dart';
 /// Service for handling all API requests
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -68,11 +68,17 @@ class ApiService {
   /// User login
   Future<Map<String, dynamic>> login(String username, String password) async {
     try {
+      // 生成 UUID
+      const uuid = Uuid();
+      String generatedUuid = uuid.v4();
+
       final response = await _dio.post(
         AppConstants.loginEndpoint,
         data: {
           'username': username,
           'password': password,
+          'uuid': generatedUuid,  // 添加 uuid
+          'isSysLogin': true,      // 添加 isSysLogin
         },
       );
       return _handleResponse(response);
@@ -336,7 +342,8 @@ class ApiService {
         if (data is List) {
           return data.map((json) => ReviewRecordModel.fromJson(json)).toList();
         } else if (data is Map) {
-          return [ReviewRecordModel.fromJson(data)];
+          // 之后（显式转换为 Map<String, dynamic>）
+          return [ReviewRecordModel.fromJson(data as Map<String, dynamic>)];
         } else {
           return [];
         }

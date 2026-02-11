@@ -8,6 +8,7 @@ import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.system.domain.EnglishNote;
 import com.ruoyi.system.service.INoteService;
+import com.ruoyi.web.controller.rag.dto.CreateNoteRequest;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -37,12 +39,17 @@ public class NoteController extends BaseController {
     @ApiOperation("添加笔记")
     @Log(title = "添加笔记", businessType = BusinessType.INSERT)
     @PostMapping("/add")
-    public AjaxResult add(@Validated @RequestBody EnglishNote note) {
+    public AjaxResult add(@Validated @RequestBody CreateNoteRequest request) {
         try {
-            // 设置当前用户ID
             Long userId = SecurityUtils.getUserId();
+
+            EnglishNote note = new EnglishNote();
             note.setUserId(userId);
-            
+            note.setContent(request.getContent());
+            note.setTags(request.getTags());
+            note.setCreateTime(new Date());
+            note.setDelFlag("0");
+
             EnglishNote createdNote = noteService.createNote(note);
             return success(createdNote);
         } catch (Exception e) {
@@ -67,7 +74,16 @@ public class NoteController extends BaseController {
             return getDataTable(null);
         }
     }
-    
+//    @GetMapping("/search")
+//    public AjaxResult search(@RequestParam String keyword) {
+//        try {
+//            Long userId = SecurityUtils.getUserId();
+//            List<EnglishNote> notes = noteService.searchNotes(userId, keyword);
+//            return success(notes);
+//        } catch (Exception e) {
+//            return error("搜索失败");
+//        }
+//    }
     /**
      * 获取笔记详情
      */

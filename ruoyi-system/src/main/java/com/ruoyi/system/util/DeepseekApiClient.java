@@ -142,6 +142,7 @@ public class DeepseekApiClient {
      * @return 响应内容
      */
     private String executeWithRetry(String url, Map<String, Object> requestBody) {
+        log.info("Requesting URL: {}", url);  // ← 添加这行
         int retries = 0;
         Exception lastException = null;
         
@@ -178,22 +179,32 @@ public class DeepseekApiClient {
      */
     private String execute(String url, Map<String, Object> requestBody) throws IOException {
         String jsonBody = JSON.toJSONString(requestBody);
-        
+
+        log.info("🔍 Deepseek API Request:");
+        log.info("   URL: {}", url);
+        log.info("   Method: POST");
+        log.info("   Body: {}", jsonBody);
+        log.info("   API Key: {}", apiKey != null ? apiKey.substring(0, 10) + "..." : "null");
+
         Request request = new Request.Builder()
                 .url(url)
                 .addHeader("Authorization", "Bearer " + apiKey)
                 .addHeader("Content-Type", "application/json")
-                .post(RequestBody.create(jsonBody, JSON_MEDIA_TYPE))
+                .post(RequestBody.create(JSON_MEDIA_TYPE, jsonBody))
                 .build();
-        
+
         try (Response response = getClient().newCall(request).execute()) {
+            log.info("📡 Response Status: {}", response.code());
+
             if (!response.isSuccessful()) {
                 String errorBody = response.body() != null ? response.body().string() : "No error body";
-                log.error("API request failed with code {}: {}", response.code(), errorBody);
+                log.error("❌ API Error ({}): {}", response.code(), errorBody);
                 throw new IOException("Unexpected response code: " + response.code() + ", body: " + errorBody);
             }
-            
-            return response.body() != null ? response.body().string() : null;
+
+            String result = response.body() != null ? response.body().string() : null;
+            log.info("✅ Success Response: {}", result);
+            return result;
         }
     }
 }
