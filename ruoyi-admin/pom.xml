@@ -119,9 +119,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>  <!-- 新增 -->
                 <configuration>
-                    <source>9</source>
-                    <target>9</target>
+                    <source>11</source>  <!-- 改: 9 → 11 -->
+                    <target>11</target>  <!-- 改: 9 → 11 -->
                 </configuration>
             </plugin>
         </plugins>

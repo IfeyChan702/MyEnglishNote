@@ -16,8 +16,8 @@
         <ruoyi.version>3.9.0</ruoyi.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>11</java.version>                    <!-- 改这行：从 1.8 改成 11 -->
-        <lombok.version>1.18.30</lombok.version>            <!-- 添加这行 -->
+        <java.version>11</java.version>  <!-- 改: 1.8 → 11 -->
+        <lombok.version>1.18.30</lombok.version>  <!-- 新增 -->
 
         <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
         <spring-boot.version>2.5.15</spring-boot.version>
@@ -185,7 +185,7 @@
                 <artifactId>kaptcha</artifactId>
                 <version>${kaptcha.version}</version>
             </dependency>
-            <!-- Lombok 编译时注解处理 -->
+            <!-- Lombok 1.18.30 支持 Java 11+ -->
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
