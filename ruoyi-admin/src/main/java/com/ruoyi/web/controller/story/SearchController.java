@@ -30,6 +30,9 @@ import java.util.Map;
 @RequestMapping("/api/search")
 public class SearchController extends BaseController {
 
+    private static final Double DEFAULT_SIMILARITY_THRESHOLD = 0.7;
+    private static final Integer DEFAULT_MAX_RESULTS = 10;
+
     @Autowired
     private IStoryService storyService;
 
@@ -44,12 +47,16 @@ public class SearchController extends BaseController {
     @PostMapping("/stories")
     public AjaxResult searchStories(
             @ApiParam("搜索关键词") @RequestParam(required = false) String keyword,
-            @ApiParam("相似度阈值") @RequestParam(required = false, defaultValue = "0.7") Double threshold,
-            @ApiParam("最大结果数") @RequestParam(required = false, defaultValue = "10") Integer maxResults) {
+            @ApiParam("相似度阈值") @RequestParam(required = false) Double threshold,
+            @ApiParam("最大结果数") @RequestParam(required = false) Integer maxResults) {
         try {
             Long userId = SecurityUtils.getUserId();
             
-            List<Story> stories = storyService.searchStories(userId, keyword, threshold, maxResults);
+            // Apply defaults if not provided
+            Double actualThreshold = threshold != null ? threshold : DEFAULT_SIMILARITY_THRESHOLD;
+            Integer actualMaxResults = maxResults != null ? maxResults : DEFAULT_MAX_RESULTS;
+            
+            List<Story> stories = storyService.searchStories(userId, keyword, actualThreshold, actualMaxResults);
             
             return success(stories);
         } catch (Exception e) {
@@ -85,12 +92,18 @@ public class SearchController extends BaseController {
     @Log(title = "全局搜索", businessType = BusinessType.OTHER)
     @PostMapping("/all")
     public AjaxResult searchAll(
-            @ApiParam("搜索关键词") @RequestParam String keyword) {
+            @ApiParam("搜索关键词") @RequestParam String keyword,
+            @ApiParam("相似度阈值") @RequestParam(required = false) Double threshold,
+            @ApiParam("最大结果数") @RequestParam(required = false) Integer maxResults) {
         try {
             Long userId = SecurityUtils.getUserId();
             
+            // Apply defaults if not provided
+            Double actualThreshold = threshold != null ? threshold : DEFAULT_SIMILARITY_THRESHOLD;
+            Integer actualMaxResults = maxResults != null ? maxResults : DEFAULT_MAX_RESULTS;
+            
             // 搜索故事
-            List<Story> stories = storyService.searchStories(userId, keyword, 0.7, 10);
+            List<Story> stories = storyService.searchStories(userId, keyword, actualThreshold, actualMaxResults);
             
             // 搜索主角
             List<Character> characters = characterService.searchCharacters(userId, keyword);

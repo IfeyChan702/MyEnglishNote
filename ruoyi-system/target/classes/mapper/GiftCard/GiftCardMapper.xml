@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.GiftCardMapper">
+
+    <resultMap type="GiftCard" id="GiftCardResult">
+        <result property="id"    column="id"    />
+        <result property="sender"    column="sender"    />
+        <result property="subject"    column="subject"    />
+        <result property="giftType"    column="gift_type"    />
+        <result property="dtStr"    column="dt_str"    />
+        <result property="code"    column="code"    />
+        <result property="orderNumber"    column="order_number"    />
+        <result property="amount"    column="amount"    />
+        <result property="extraNumber"    column="extra_number"    />
+        <result property="usageType"    column="usage_type"    />
+        <result property="status"    column="status"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectGiftCardVo">
+        select id, sender, subject, gift_type, dt_str, code, order_number, amount, extra_number, usage_type, status, create_time from gift_card
+    </sql>
+
+    <select id="selectGiftCardList" parameterType="GiftCard" resultMap="GiftCardResult">
+        <include refid="selectGiftCardVo"/>
+        <where>
+            <if test="sender != null  and sender != ''"> and sender = #{sender}</if>
+            <if test="subject != null  and subject != ''"> and subject = #{subject}</if>
+            <if test="giftType != null  and giftType != ''"> and gift_type = #{giftType}</if>
+            <if test="dtStr != null  and dtStr != ''"> and dt_str = #{dtStr}</if>
+            <if test="code != null  and code != ''"> and code = #{code}</if>
+            <if test="orderNumber != null  and orderNumber != ''"> and order_number = #{orderNumber}</if>
+            <if test="amount != null "> and amount = #{amount}</if>
+            <if test="extraNumber != null  and extraNumber != ''"> and extra_number = #{extraNumber}</if>
+            <if test="usageType != null  and usageType != ''"> and usage_type = #{usageType}</if>
+            <if test="status != null "> and status = #{status}</if>
+        </where>
+    </select>
+
+    <select id="selectGiftCardListByTime" parameterType="GiftCardQueryVo" resultMap="GiftCardResult">
+        <include refid="selectGiftCardVo"/>
+        <where>
+            <if test="sender != null and sender != ''"> and sender = #{sender}</if>
+            <if test="subject != null and subject != ''"> and subject = #{subject}</if>
+            <if test="giftType != null and giftType != ''"> and gift_type = #{giftType}</if>
+            <if test="code != null and code != ''"> and code = #{code}</if>
+            <if test="orderNumber != null and orderNumber != ''"> and order_number = #{orderNumber}</if>
+            <if test="amount != null"> and amount = #{amount}</if>
+            <if test="extraNumber != null and extraNumber != ''"> and extra_number = #{extraNumber}</if>
+            <if test="usageType != null and usageType != ''"> and usage_type = #{usageType}</if>
+            <if test="status != null"> and status = #{status}</if>
+
+            <!-- 关键：使用 create_time 字段进行范围查询 -->
+            <if test="beginTime != null">
+                AND create_time <![CDATA[ >= ]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                AND create_time <![CDATA[ < ]]> DATE_ADD(#{endTime}, INTERVAL 1 DAY)
+            </if>
+        </where>
+        <!-- 建议按创建时间倒序排列 -->
+        order by create_time desc
+    </select>
+
+    <select id="selectGiftCardById" parameterType="Long" resultMap="GiftCardResult">
+        <include refid="selectGiftCardVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertGiftCard" parameterType="GiftCard" useGeneratedKeys="true" keyProperty="id">
+        insert into gift_card
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="sender != null">sender,</if>
+            <if test="subject != null">subject,</if>
+            <if test="giftType != null">gift_type,</if>
+            <if test="dtStr != null">dt_str,</if>
+            <if test="code != null">code,</if>
+            <if test="orderNumber != null">order_number,</if>
+            <if test="amount != null">amount,</if>
+            <if test="extraNumber != null">extra_number,</if>
+            <if test="usageType != null">usage_type,</if>
+            <if test="status != null">status,</if>
+            <if test="createTime != null">create_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="sender != null">#{sender},</if>
+            <if test="subject != null">#{subject},</if>
+            <if test="giftType != null">#{giftType},</if>
+            <if test="dtStr != null">#{dtStr},</if>
+            <if test="code != null">#{code},</if>
+            <if test="orderNumber != null">#{orderNumber},</if>
+            <if test="amount != null">#{amount},</if>
+            <if test="extraNumber != null">#{extraNumber},</if>
+            <if test="usageType != null">#{usageType},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createTime != null">#{createTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateGiftCard" parameterType="GiftCard">
+        update gift_card
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="sender != null">sender = #{sender},</if>
+            <if test="subject != null">subject = #{subject},</if>
+            <if test="giftType != null">gift_type = #{giftType},</if>
+            <if test="dtStr != null">dt_str = #{dtStr},</if>
+            <if test="code != null">code = #{code},</if>
+            <if test="orderNumber != null">order_number = #{orderNumber},</if>
+            <if test="amount != null">amount = #{amount},</if>
+            <if test="extraNumber != null">extra_number = #{extraNumber},</if>
+            <if test="usageType != null">usage_type = #{usageType},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteGiftCardById" parameterType="Long">
+        delete from gift_card where id = #{id}
+    </delete>
+
+    <delete id="deleteGiftCardByIds" parameterType="String">
+        delete from gift_card where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <update id="updateGiftCardByCode" parameterType="GiftCard">
+        UPDATE gift_card
+        SET usage_type = #{usageType},
+            status = #{status}
+        WHERE code = #{code}
+    </update>
+    <update id="batchResetToUnused" parameterType="java.util.List">
+        UPDATE gift_card
+        SET status = 0
+        WHERE status = 3
+        AND id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectOldestGiftCardByStatus" parameterType="long" resultMap="GiftCardResult">
+        SELECT id, sender, subject, gift_type, dt_str, code, order_number, amount, extra_number, usage_type, status, create_time
+        FROM gift_card
+        WHERE status = #{status}
+        ORDER BY create_time ASC
+            LIMIT 1
+    </select>
+    <select id="selectOldestGiftCardByStatusAndTypeForUpdate" resultMap="GiftCardResult">
+        SELECT id, sender, subject, gift_type, dt_str, code, order_number, amount,
+        extra_number, usage_type, status, create_time
+        FROM gift_card
+        WHERE status = #{status}
+        AND (gift_type = #{giftType} OR gift_type IS NULL)
+        ORDER BY
+        CASE WHEN gift_type = #{giftType} THEN 0 ELSE 1 END,
+        create_time ASC
+        LIMIT 1
+        FOR UPDATE
+    </select>
+
+    <select id="selectGiftCardAmountSum" parameterType="GiftCardQueryVo" resultType="java.lang.Double">
+        SELECT SUM(amount)
+        FROM gift_card
+        <where>
+            <if test="sender != null  and sender != ''"> and sender = #{sender}</if>
+            <if test="subject != null  and subject != ''"> and subject = #{subject}</if>
+            <if test="giftType != null  and giftType != ''"> and gift_type = #{giftType}</if>
+            <if test="dtStr != null  and dtStr != ''"> and dt_str = #{dtStr}</if>
+            <if test="code != null  and code != ''"> and code = #{code}</if>
+            <if test="orderNumber != null  and orderNumber != ''"> and order_number = #{orderNumber}</if>
+            <if test="amount != null "> and amount = #{amount}</if>
+            <if test="extraNumber != null  and extraNumber != ''"> and extra_number = #{extraNumber}</if>
+            <if test="usageType != null  and usageType != ''"> and usage_type = #{usageType}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="beginTime != null">
+                AND create_time <![CDATA[ >= ]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                AND create_time <![CDATA[ < ]]> DATE_ADD(#{endTime}, INTERVAL 1 DAY)
+            </if>
+        </where>
+    </select>
+
+
+</mapper>

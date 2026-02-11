@@ -48,8 +48,8 @@ public class DeepseekApiClient {
     @Value("${rag.deepseek.max-retries:3}")
     private int maxRetries;
     
-    @Value("${rag.deepseek.vision-model:deepseek-chat}")
-    private String visionModel;
+    @Value("${rag.deepseek.multimodal-model:deepseek-chat}")
+    private String multimodalModel;
     
     private OkHttpClient client;
     
@@ -168,7 +168,16 @@ public class DeepseekApiClient {
         } else {
             // Base64格式需要添加data URI前缀
             if (!imageBase64.startsWith("data:image")) {
-                imageUrl.put("url", "data:image/jpeg;base64," + imageBase64);
+                // 检测图片类型，默认使用jpeg
+                String mimeType = "jpeg";
+                if (imageBase64.startsWith("/9j/")) {
+                    mimeType = "jpeg";
+                } else if (imageBase64.startsWith("iVBORw0KGgo")) {
+                    mimeType = "png";
+                } else if (imageBase64.startsWith("R0lGOD")) {
+                    mimeType = "gif";
+                }
+                imageUrl.put("url", "data:image/" + mimeType + ";base64," + imageBase64);
             } else {
                 imageUrl.put("url", imageBase64);
             }
@@ -181,7 +190,7 @@ public class DeepseekApiClient {
         
         // 构建请求体
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", visionModel);
+        requestBody.put("model", multimodalModel);
         requestBody.put("messages", messages);
         requestBody.put("temperature", 0.3);
         requestBody.put("max_tokens", 500);
