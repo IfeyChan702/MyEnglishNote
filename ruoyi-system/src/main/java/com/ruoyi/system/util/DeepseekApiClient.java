@@ -48,6 +48,9 @@ public class DeepseekApiClient {
     @Value("${rag.deepseek.max-retries:3}")
     private int maxRetries;
     
+    @Value("${rag.deepseek.vision-model:deepseek-chat}")
+    private String visionModel;
+    
     private OkHttpClient client;
     
     /**
@@ -132,6 +135,123 @@ public class DeepseekApiClient {
         JSONObject message = choice.getJSONObject("message");
         
         return message.getString("content");
+    }
+    
+    /**
+     * 调用Vision API识别图片中的物品
+     * 
+     * @param imageBase64 图片Base64编码（不含data:image前缀）或URL
+     * @param imageType 图片类型: "base64" 或 "url"
+     * @return 识别出的物品列表
+     */
+    public List<String> analyzeImage(String imageBase64, String imageType) {
+        // 构建消息
+        List<Map<String, Object>> messages = new ArrayList<>();
+        Map<String, Object> message = new HashMap<>();
+        message.put("role", "user");
+        
+        // 构建内容数组
+        List<Map<String, Object>> content = new ArrayList<>();
+        
+        // 添加文本部分
+        Map<String, Object> textPart = new HashMap<>();
+        textPart.put("type", "text");
+        textPart.put("text", "Please identify all objects, items, and things visible in this image. List them as simple English nouns, separated by commas. Only include the object names, no descriptions or explanations.");
+        content.add(textPart);
+        
+        // 添加图片部分
+        Map<String, Object> imagePart = new HashMap<>();
+        imagePart.put("type", "image_url");
+        Map<String, String> imageUrl = new HashMap<>();
+        if ("url".equalsIgnoreCase(imageType)) {
+            imageUrl.put("url", imageBase64);
+        } else {
+            // Base64格式需要添加data URI前缀
+            if (!imageBase64.startsWith("data:image")) {
+                imageUrl.put("url", "data:image/jpeg;base64," + imageBase64);
+            } else {
+                imageUrl.put("url", imageBase64);
+            }
+        }
+        imagePart.put("image_url", imageUrl);
+        content.add(imagePart);
+        
+        message.put("content", content);
+        messages.add(message);
+        
+        // 构建请求体
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", visionModel);
+        requestBody.put("messages", messages);
+        requestBody.put("temperature", 0.3);
+        requestBody.put("max_tokens", 500);
+        
+        String url = apiEndpoint + chatPath;
+        String responseBody = executeWithRetry(url, requestBody);
+        
+        if (responseBody == null) {
+            throw new RuntimeException("Failed to get vision analysis from Deepseek API");
+        }
+        
+        // 解析响应
+        JSONObject response = JSON.parseObject(responseBody);
+        JSONArray choices = response.getJSONArray("choices");
+        if (choices == null || choices.isEmpty()) {
+            throw new RuntimeException("Empty choices in vision response");
+        }
+        
+        JSONObject choice = choices.getJSONObject(0);
+        JSONObject responseMessage = choice.getJSONObject("message");
+        String responseContent = responseMessage.getString("content");
+        
+        // 解析物品列表（假设返回的是逗号分隔的列表）
+        List<String> objects = new ArrayList<>();
+        if (responseContent != null && !responseContent.trim().isEmpty()) {
+            String[] items = responseContent.split(",");
+            for (String item : items) {
+                String trimmed = item.trim();
+                if (!trimmed.isEmpty()) {
+                    objects.add(trimmed);
+                }
+            }
+        }
+        
+        log.info("Identified {} objects from image", objects.size());
+        return objects;
+    }
+    
+    /**
+     * 基于物品列表生成故事
+     * 
+     * @param objects 物品列表
+     * @param characterName 主角名字
+     * @param model 模型名称
+     * @return 生成的故事
+     */
+    public String generateStory(List<String> objects, String characterName, String model) {
+        String objectsStr = String.join(", ", objects);
+        
+        List<Map<String, String>> messages = new ArrayList<>();
+        
+        // 系统消息
+        Map<String, String> systemMessage = new HashMap<>();
+        systemMessage.put("role", "system");
+        systemMessage.put("content", "You are a creative English storyteller who writes engaging fairy tales for children. Your stories should be educational, fun, and include all the objects mentioned.");
+        messages.add(systemMessage);
+        
+        // 用户消息
+        Map<String, String> userMessage = new HashMap<>();
+        userMessage.put("role", "user");
+        userMessage.put("content", String.format(
+            "Write a short English fairy tale (about 200-300 words) featuring a character named '%s'. " +
+            "The story MUST include ALL of these objects: %s. " +
+            "Make the story creative, educational, and appropriate for children. " +
+            "Use simple English vocabulary suitable for language learners.",
+            characterName, objectsStr
+        ));
+        messages.add(userMessage);
+        
+        return createChatCompletion(messages, model);
     }
     
     /**
