@@ -5,9 +5,10 @@ import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.SecurityUtils;
-import com.ruoyi.system.domain.Character;
+import com.ruoyi.system.domain.StoryCharacter;
 import com.ruoyi.system.domain.Story;
-import com.ruoyi.system.service.ICharacterService;
+
+import com.ruoyi.system.service.IStoryCharacterService;
 import com.ruoyi.system.service.IStoryService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -37,7 +38,7 @@ public class SearchController extends BaseController {
     private IStoryService storyService;
 
     @Autowired
-    private ICharacterService characterService;
+    private IStoryCharacterService characterService;
     
     /**
      * 搜索故事
@@ -76,7 +77,7 @@ public class SearchController extends BaseController {
         try {
             Long userId = SecurityUtils.getUserId();
             
-            List<Character> characters = characterService.searchCharacters(userId, keyword);
+            List<StoryCharacter> characters = characterService.searchCharacters(userId, keyword);
             
             return success(characters);
         } catch (Exception e) {
@@ -106,7 +107,7 @@ public class SearchController extends BaseController {
             List<Story> stories = storyService.searchStories(userId, keyword, actualThreshold, actualMaxResults);
             
             // 搜索主角
-            List<Character> characters = characterService.searchCharacters(userId, keyword);
+            List<StoryCharacter> characters = characterService.searchCharacters(userId, keyword);
             
             // 组合结果
             Map<String, Object> result = new HashMap<>();

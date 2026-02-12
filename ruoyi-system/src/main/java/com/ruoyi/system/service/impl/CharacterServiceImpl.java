@@ -2,7 +2,7 @@ package com.ruoyi.system.service.impl;
 
 import com.ruoyi.system.domain.StoryCharacter;
 import com.ruoyi.system.mapper.StoryCharacterMapper;
-import com.ruoyi.system.service.ICharacterService;
+import com.ruoyi.system.service.IStoryCharacterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.List;
 
 @Service
-public class CharacterServiceImpl implements ICharacterService {
+public class CharacterServiceImpl implements IStoryCharacterService {
     @Autowired
     private StoryCharacterMapper storyCharacterMapper;
 

@@ -6,9 +6,9 @@ import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.SecurityUtils;
-import com.ruoyi.system.domain.Character;
+import com.ruoyi.system.domain.StoryCharacter;
 import com.ruoyi.system.domain.dto.AddCharacterRequest;
-import com.ruoyi.system.service.ICharacterService;
+import com.ruoyi.system.service.IStoryCharacterService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -30,7 +30,7 @@ import java.util.List;
 public class CharacterController extends BaseController {
 
     @Autowired
-    private ICharacterService characterService;
+    private IStoryCharacterService characterService;
     
     /**
      * 添加主角
@@ -42,7 +42,7 @@ public class CharacterController extends BaseController {
         try {
             Long userId = SecurityUtils.getUserId();
             
-            Character character = new Character();
+            StoryCharacter character = new StoryCharacter();
             character.setUserId(userId);
             character.setName(request.getName());
             character.setDescription(request.getDescription());
@@ -68,7 +68,7 @@ public class CharacterController extends BaseController {
         try {
             Long userId = SecurityUtils.getUserId();
             startPage();
-            List<Character> list = characterService.selectCharacterListByUserId(userId);
+            List<StoryCharacter> list = characterService.selectCharacterListByUserId(userId);
             return getDataTable(list);
         } catch (Exception e) {
             logger.error("Failed to list characters: {}", e.getMessage(), e);
@@ -84,7 +84,7 @@ public class CharacterController extends BaseController {
     public AjaxResult getInfo(
             @ApiParam("主角ID") @PathVariable Long id) {
         try {
-            Character character = characterService.selectCharacterById(id);
+            StoryCharacter character = characterService.selectCharacterById(id);
             if (character == null) {
                 return error("主角不存在");
             }
@@ -115,15 +115,15 @@ public class CharacterController extends BaseController {
             Long userId = SecurityUtils.getUserId();
             
             // 验证主角存在和所有权
-            Character existingCharacter = characterService.selectCharacterById(id);
+            StoryCharacter existingCharacter = characterService.selectCharacterById(id);
             if (existingCharacter == null) {
                 return error("主角不存在");
             }
             if (!existingCharacter.getUserId().equals(userId)) {
                 return error("无权修改该主角");
             }
-            
-            Character character = new Character();
+
+            StoryCharacter character = new StoryCharacter();
             character.setId(id);
             character.setName(request.getName());
             character.setDescription(request.getDescription());
@@ -152,7 +152,7 @@ public class CharacterController extends BaseController {
             Long userId = SecurityUtils.getUserId();
             
             // 验证主角存在和所有权
-            Character existingCharacter = characterService.selectCharacterById(id);
+            StoryCharacter existingCharacter = characterService.selectCharacterById(id);
             if (existingCharacter == null) {
                 return error("主角不存在");
             }
