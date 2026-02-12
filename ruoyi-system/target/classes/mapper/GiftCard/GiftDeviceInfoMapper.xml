@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.GiftDeviceInfoMapper">
+
+    <resultMap type="GiftDeviceInfo" id="GiftDeviceInfoResult">
+        <id property="id" column="id"/>
+        <result property="deviceNumber"    column="device_number"    />
+        <result property="currentAmount"    column="current_amount"    />
+        <result property="rechargeLimit"    column="recharge_limit"    />
+        <result property="rechargeEnabled"    column="recharge_enabled"    />
+        <result property="shoppingEnabled"    column="shopping_enabled"    />
+        <result property="deviceEnabled"    column="device_enabled"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectGiftDeviceInfoVo">
+        select id, device_number, current_amount, recharge_limit, recharge_enabled, shopping_enabled, device_enabled, create_time, update_time from gift_device_info
+    </sql>
+
+    <select id="selectGiftDeviceInfoList" parameterType="GiftDeviceInfo" resultMap="GiftDeviceInfoResult">
+        <include refid="selectGiftDeviceInfoVo"/>
+        <where>
+            <if test="deviceNumber != null  and deviceNumber != ''"> and device_number = #{deviceNumber}</if>
+            <if test="currentAmount != null "> and current_amount = #{currentAmount}</if>
+            <if test="rechargeLimit != null "> and recharge_limit = #{rechargeLimit}</if>
+            <if test="rechargeEnabled != null "> and recharge_enabled = #{rechargeEnabled}</if>
+            <if test="shoppingEnabled != null "> and shopping_enabled = #{shoppingEnabled}</if>
+            <if test="deviceEnabled != null "> and device_enabled = #{deviceEnabled}</if>
+        </where>
+    </select>
+
+    <select id="selectGiftDeviceInfoById" parameterType="java.lang.Long" resultMap="GiftDeviceInfoResult">
+        <include refid="selectGiftDeviceInfoVo"/>
+        where id = #{id}
+    </select>
+    <select id="countByDeviceNumber" resultType="int">
+        select count(1)
+        from gift_device_info
+        where device_number = #{deviceNumber}
+    </select>
+    <select id="selectByDeviceNumber" resultType="com.ruoyi.system.domain.GiftDeviceInfo">
+        select
+            id,
+            device_number as deviceNumber,
+            current_amount as currentAmount,
+            recharge_limit as rechargeLimit,
+            recharge_enabled as rechargeEnabled,
+            shopping_enabled as shoppingEnabled,
+            device_enabled as deviceEnabled,
+            create_time as createTime,
+            update_time as updateTime
+        from gift_device_info
+        where device_number = #{deviceNumber}
+            limit 1
+    </select>
+
+    <insert id="insertGiftDeviceInfo" parameterType="GiftDeviceInfo" useGeneratedKeys="true" keyProperty="id">
+        insert into gift_device_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="deviceNumber != null and deviceNumber != ''">device_number,</if>
+            <if test="currentAmount != null">current_amount,</if>
+            <if test="rechargeLimit != null">recharge_limit,</if>
+            <if test="rechargeEnabled != null">recharge_enabled,</if>
+            <if test="shoppingEnabled != null">shopping_enabled,</if>
+            <if test="deviceEnabled != null">device_enabled,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="deviceNumber != null and deviceNumber != ''">#{deviceNumber},</if>
+            <if test="currentAmount != null">#{currentAmount},</if>
+            <if test="rechargeLimit != null">#{rechargeLimit},</if>
+            <if test="rechargeEnabled != null">#{rechargeEnabled},</if>
+            <if test="shoppingEnabled != null">#{shoppingEnabled},</if>
+            <if test="deviceEnabled != null">#{deviceEnabled},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateGiftDeviceInfo" parameterType="GiftDeviceInfo">
+        update gift_device_info
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="deviceNumber != null and deviceNumber != ''">device_number = #{deviceNumber},</if>
+            <if test="currentAmount != null">current_amount = #{currentAmount},</if>
+            <if test="rechargeLimit != null">recharge_limit = #{rechargeLimit},</if>
+            <if test="rechargeEnabled != null">recharge_enabled = #{rechargeEnabled},</if>
+            <if test="shoppingEnabled != null">shopping_enabled = #{shoppingEnabled},</if>
+            <if test="deviceEnabled != null">device_enabled = #{deviceEnabled},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteGiftDeviceInfoById" parameterType="java.lang.Long">
+        delete from gift_device_info where id = #{id}
+    </delete>
+
+    <delete id="deleteGiftDeviceInfoByIds" parameterType="java.lang.Long">
+        delete from gift_device_info where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

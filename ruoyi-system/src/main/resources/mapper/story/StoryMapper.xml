@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.StoryMapper">
+    
+    <resultMap type="com.ruoyi.system.domain.Story" id="StoryResult">
+        <result property="id"    column="id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="characterId"    column="character_id"    />
+        <result property="title"    column="title"    />
+        <result property="content"    column="content"    />
+        <result property="objects"    column="objects"    />
+        <result property="imageUrl"    column="image_url"    />
+        <result property="embedding"    column="embedding"    />
+        <result property="embeddingModel"    column="embedding_model"    />
+        <result property="isFavorite"    column="is_favorite"    />
+        <result property="viewCount"    column="view_count"    />
+        <result property="shareCount"    column="share_count"    />
+        <result property="shareToken"    column="share_token"    />
+        <result property="createdAt"    column="created_at"    />
+        <result property="updatedAt"    column="updated_at"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="similarityScore"    column="similarity_score"    />
+        <result property="characterName"    column="character_name"    />
+    </resultMap>
+
+    <sql id="selectStoryVo">
+        select s.id, s.user_id, s.character_id, s.title, s.content, s.objects, s.image_url, 
+               s.embedding, s.embedding_model, s.is_favorite, s.view_count, s.share_count, 
+               s.share_token, s.created_at, s.updated_at, s.del_flag, c.name as character_name
+        from story s
+        left join `character` c on s.character_id = c.id
+    </sql>
+
+    <select id="selectStoryById" parameterType="Long" resultMap="StoryResult">
+        <include refid="selectStoryVo"/>
+        where s.id = #{id} and s.del_flag = '0'
+    </select>
+
+    <select id="selectStoryList" parameterType="com.ruoyi.system.domain.Story" resultMap="StoryResult">
+        <include refid="selectStoryVo"/>
+        <where>
+            s.del_flag = '0'
+            <if test="userId != null">and s.user_id = #{userId}</if>
+            <if test="characterId != null">and s.character_id = #{characterId}</if>
+            <if test="title != null and title != ''">
+                and s.title like concat('%', #{title}, '%')
+            </if>
+            <if test="isFavorite != null">and s.is_favorite = #{isFavorite}</if>
+        </where>
+        order by s.created_at desc
+    </select>
+
+    <select id="selectStoryListByUserId" parameterType="Long" resultMap="StoryResult">
+        <include refid="selectStoryVo"/>
+        where s.user_id = #{userId} and s.del_flag = '0'
+        order by s.created_at desc
+    </select>
+
+    <select id="selectStoryListByCharacterId" parameterType="Long" resultMap="StoryResult">
+        <include refid="selectStoryVo"/>
+        where s.character_id = #{characterId} and s.del_flag = '0'
+        order by s.created_at desc
+    </select>
+
+    <insert id="insertStory" parameterType="com.ruoyi.system.domain.Story" useGeneratedKeys="true" keyProperty="id">
+        insert into story
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="characterId != null">character_id,</if>
+            <if test="title != null and title != ''">title,</if>
+            <if test="content != null and content != ''">content,</if>
+            <if test="objects != null">objects,</if>
+            <if test="imageUrl != null">image_url,</if>
+            <if test="embedding != null">embedding,</if>
+            <if test="embeddingModel != null">embedding_model,</if>
+            <if test="shareToken != null">share_token,</if>
+            is_favorite,
+            view_count,
+            share_count,
+            created_at,
+            updated_at
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="characterId != null">#{characterId},</if>
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="content != null and content != ''">#{content},</if>
+            <if test="objects != null">#{objects},</if>
+            <if test="imageUrl != null">#{imageUrl},</if>
+            <if test="embedding != null">#{embedding},</if>
+            <if test="embeddingModel != null">#{embeddingModel},</if>
+            <if test="shareToken != null">#{shareToken},</if>
+            0,
+            0,
+            0,
+            now(),
+            now()
+        </trim>
+    </insert>
+
+    <update id="updateStory" parameterType="com.ruoyi.system.domain.Story">
+        update story
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="content != null and content != ''">content = #{content},</if>
+            <if test="embedding != null">embedding = #{embedding},</if>
+            <if test="embeddingModel != null">embedding_model = #{embeddingModel},</if>
+            <if test="isFavorite != null">is_favorite = #{isFavorite},</if>
+            updated_at = now()
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteStoryById" parameterType="Long">
+        update story set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteStoryByIds" parameterType="Long">
+        update story set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 
+        Note: This is a simplified placeholder for vector similarity search.
+        Full cosine similarity calculation would be performed in the service layer
+        using VectorUtil for better performance. This query returns stories with
+        embeddings for further processing.
+    -->
+    <select id="searchSimilarStories" resultMap="StoryResult">
+        select s.*, c.name as character_name, 0 as similarity_score
+        from story s
+        left join `character` c on s.character_id = c.id
+        where s.user_id = #{userId} and s.del_flag = '0' and s.embedding is not null
+        order by s.created_at desc
+        limit #{limit}
+    </select>
+
+    <select id="countStoriesByUserId" parameterType="Long" resultType="int">
+        select count(*) from story where user_id = #{userId} and del_flag = '0'
+    </select>
+
+    <update id="incrementViewCount" parameterType="Long">
+        update story set view_count = view_count + 1 where id = #{id}
+    </update>
+
+    <update id="incrementShareCount" parameterType="Long">
+        update story set share_count = share_count + 1 where id = #{id}
+    </update>
+
+    <select id="selectStoryByShareToken" parameterType="String" resultMap="StoryResult">
+        <include refid="selectStoryVo"/>
+        where s.share_token = #{shareToken} and s.del_flag = '0'
+    </select>
+
+    <select id="searchStories" resultMap="StoryResult">
+        <include refid="selectStoryVo"/>
+        where s.user_id = #{userId} and s.del_flag = '0'
+        <if test="keyword != null and keyword != ''">
+            and (s.title like concat('%', #{keyword}, '%') 
+                 or s.content like concat('%', #{keyword}, '%')
+                 or c.name like concat('%', #{keyword}, '%'))
+        </if>
+        order by s.created_at desc
+    </select>
+
+</mapper>

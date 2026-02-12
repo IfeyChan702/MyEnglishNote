@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.CharacterMapper">
+    
+    <resultMap type="com.ruoyi.system.domain.Character" id="CharacterResult">
+        <result property="id"    column="id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="name"    column="name"    />
+        <result property="description"    column="description"    />
+        <result property="avatarUrl"    column="avatar_url"    />
+        <result property="storyCount"    column="story_count"    />
+        <result property="createdAt"    column="created_at"    />
+        <result property="updatedAt"    column="updated_at"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <sql id="selectCharacterVo">
+        select id, user_id, name, description, avatar_url, story_count, created_at, updated_at, del_flag 
+        from `character`
+    </sql>
+
+    <select id="selectCharacterById" parameterType="Long" resultMap="CharacterResult">
+        <include refid="selectCharacterVo"/>
+        where id = #{id} and del_flag = '0'
+    </select>
+
+    <select id="selectCharacterList" parameterType="com.ruoyi.system.domain.Character" resultMap="CharacterResult">
+        <include refid="selectCharacterVo"/>
+        <where>
+            del_flag = '0'
+            <if test="userId != null">and user_id = #{userId}</if>
+            <if test="name != null and name != ''">
+                and name like concat('%', #{name}, '%')
+            </if>
+        </where>
+        order by created_at desc
+    </select>
+
+    <select id="selectCharacterListByUserId" parameterType="Long" resultMap="CharacterResult">
+        <include refid="selectCharacterVo"/>
+        where user_id = #{userId} and del_flag = '0'
+        order by created_at desc
+    </select>
+
+    <insert id="insertCharacter" parameterType="com.ruoyi.system.domain.Character" useGeneratedKeys="true" keyProperty="id">
+        insert into `character`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="name != null and name != ''">name,</if>
+            <if test="description != null">description,</if>
+            <if test="avatarUrl != null">avatar_url,</if>
+            story_count,
+            created_at,
+            updated_at
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="description != null">#{description},</if>
+            <if test="avatarUrl != null">#{avatarUrl},</if>
+            0,
+            now(),
+            now()
+        </trim>
+    </insert>
+
+    <update id="updateCharacter" parameterType="com.ruoyi.system.domain.Character">
+        update `character`
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="avatarUrl != null">avatar_url = #{avatarUrl},</if>
+            updated_at = now()
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteCharacterById" parameterType="Long">
+        update `character` set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteCharacterByIds" parameterType="Long">
+        update `character` set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <update id="incrementStoryCount" parameterType="Long">
+        update `character` set story_count = story_count + 1 where id = #{characterId}
+    </update>
+
+    <update id="decrementStoryCount" parameterType="Long">
+        update `character` set story_count = GREATEST(story_count - 1, 0) where id = #{characterId}
+    </update>
+
+    <select id="searchCharacters" resultMap="CharacterResult">
+        <include refid="selectCharacterVo"/>
+        where user_id = #{userId} and del_flag = '0'
+        <if test="keyword != null and keyword != ''">
+            and (name like concat('%', #{keyword}, '%') 
+                 or description like concat('%', #{keyword}, '%'))
+        </if>
+        order by story_count desc, created_at desc
+    </select>
+
+</mapper>

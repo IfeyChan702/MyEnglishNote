@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.EmbeddingMapper">
+    
+    <resultMap type="EmbeddingRecord" id="EmbeddingRecordResult">
+        <result property="id"    column="id"    />
+        <result property="queryText"    column="query_text"    />
+        <result property="queryEmbedding"    column="query_embedding"    />
+        <result property="results"    column="results"    />
+        <result property="resultCount"    column="result_count"    />
+        <result property="similarityThreshold"    column="similarity_threshold"    />
+        <result property="userId"    column="user_id"    />
+        <result property="createTime"    column="created_at"    />
+    </resultMap>
+
+    <sql id="selectEmbeddingRecordVo">
+        select id, query_text, query_embedding, results, result_count, 
+               similarity_threshold, user_id, created_at
+        from embedding_record
+    </sql>
+
+    <select id="selectEmbeddingRecordById" parameterType="Long" resultMap="EmbeddingRecordResult">
+        <include refid="selectEmbeddingRecordVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectEmbeddingRecordList" parameterType="EmbeddingRecord" resultMap="EmbeddingRecordResult">
+        <include refid="selectEmbeddingRecordVo"/>
+        <where>
+            <if test="userId != null">and user_id = #{userId}</if>
+            <if test="queryText != null and queryText != ''">
+                and query_text like concat('%', #{queryText}, '%')
+            </if>
+        </where>
+        order by created_at desc
+    </select>
+
+    <insert id="insertEmbeddingRecord" parameterType="EmbeddingRecord" useGeneratedKeys="true" keyProperty="id">
+        insert into embedding_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="queryText != null and queryText != ''">query_text,</if>
+            <if test="queryEmbedding != null">query_embedding,</if>
+            <if test="results != null">results,</if>
+            <if test="resultCount != null">result_count,</if>
+            <if test="similarityThreshold != null">similarity_threshold,</if>
+            <if test="userId != null">user_id,</if>
+            created_at
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="queryText != null and queryText != ''">#{queryText},</if>
+            <if test="queryEmbedding != null">#{queryEmbedding},</if>
+            <if test="results != null">#{results},</if>
+            <if test="resultCount != null">#{resultCount},</if>
+            <if test="similarityThreshold != null">#{similarityThreshold},</if>
+            <if test="userId != null">#{userId},</if>
+            now()
+        </trim>
+    </insert>
+
+    <delete id="deleteEmbeddingRecordById" parameterType="Long">
+        delete from embedding_record where id = #{id}
+    </delete>
+
+    <delete id="deleteEmbeddingRecordByIds" parameterType="Long">
+        delete from embedding_record where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>
