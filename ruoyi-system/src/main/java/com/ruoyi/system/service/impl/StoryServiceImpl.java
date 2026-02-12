@@ -1,93 +1,61 @@
 package com.ruoyi.system.service.impl;
 
-
-import com.ruoyi.system.domain.Story;
-import com.ruoyi.system.domain.StoryCharacter;
-import com.ruoyi.system.domain.dto.GenerateStoryRequest;
-import com.ruoyi.system.domain.dto.GenerateStoryResponse;
 import com.ruoyi.system.mapper.StoryCharacterMapper;
+import com.ruoyi.system.domain.StoryCharacter;
 import com.ruoyi.system.service.IStoryService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Service
 public class StoryServiceImpl implements IStoryService {
 
-    private StoryCharacterMapper storyCharacterMapper; // updated field
+    @Autowired
+    private StoryCharacterMapper storyCharacterMapper;
 
     @Override
-    public Story selectStoryById(Long id) {
-        return null;
+    public String generateStory() {
+        // Implement story generation logic here
+        return "Generated story content.";
     }
 
     @Override
-    public List<Story> selectStoryList(Story story) {
-        return null;
+    @Transactional
+    public void addStory(StoryCharacter story) {
+        try {
+            storyCharacterMapper.insert(story);
+        } catch (Exception e) {
+            // Handle error
+            throw new RuntimeException("Error adding story: " + e.getMessage());
+        }
     }
 
     @Override
-    public List<Story> selectStoryListByUserId(Long userId) {
-        return null;
+    @Transactional
+    public void updateStory(StoryCharacter story) {
+        try {
+            storyCharacterMapper.update(story);
+        } catch (Exception e) {
+            // Handle error
+            throw new RuntimeException("Error updating story: " + e.getMessage());
+        }
     }
 
     @Override
-    public List<Story> selectStoryListByCharacterId(Long characterId) {
-        return null;
+    @Transactional
+    public void deleteStory(Long id) {
+        try {
+            storyCharacterMapper.delete(id);
+        } catch (Exception e) {
+            // Handle error
+            throw new RuntimeException("Error deleting story: " + e.getMessage());
+        }
     }
 
     @Override
-    public int insertStory(Story story) {
-        return 0;
+    public List<StoryCharacter> listAllStories() {
+        return storyCharacterMapper.selectAll();
     }
-
-    @Override
-    public int updateStory(Story story) {
-        return 0;
-    }
-
-    @Override
-    public int deleteStoryById(Long id) {
-        return 0;
-    }
-
-    @Override
-    public int deleteStoryByIds(Long[] ids) {
-        return 0;
-    }
-
-    @Override
-    public GenerateStoryResponse generateStory(Long userId, GenerateStoryRequest request) {
-        return null;
-    }
-
-    @Override
-    public int favoriteStory(Long userId, Long storyId) {
-        return 0;
-    }
-
-    @Override
-    public int unfavoriteStory(Long userId, Long storyId) {
-        return 0;
-    }
-
-    @Override
-    public List<Story> searchStories(Long userId, String keyword, Double similarityThreshold, Integer maxResults) {
-        return null;
-    }
-
-    @Override
-    public Story getStoryByShareToken(String shareToken) {
-        return null;
-    }
-
-    @Override
-    public String generateShareToken(Long storyId) {
-        return null;
-    }
-
-    // other existing methods
-
-//    public void someMethod() {
-//        StoryCharacter myCharacter = storyCharacterMapper.selectCharacterById(1); // updated usage
-//        // existing logic
-//    }
 }
