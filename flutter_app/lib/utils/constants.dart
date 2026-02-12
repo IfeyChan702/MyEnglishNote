@@ -23,6 +23,28 @@ class AppConstants {
   static const String reviewStatsEndpoint = '$apiPrefix/review/stats';
   static const String reviewInitEndpoint = '$apiPrefix/review/initialize';
   
+  // Story Endpoints
+  static const String storyGenerateEndpoint = '$apiPrefix/story/generate';
+  static const String storyListEndpoint = '$apiPrefix/story/list';
+  static const String storyGetEndpoint = '$apiPrefix/story'; // /{id}
+  static const String storyUpdateEndpoint = '$apiPrefix/story'; // /{id}
+  static const String storyDeleteEndpoint = '$apiPrefix/story'; // /{id}
+  static const String storyFavoriteEndpoint = '$apiPrefix/story'; // /{id}/favorite
+  static const String storyShareEndpoint = '$apiPrefix/story'; // /{id}/share
+  static const String storySharedEndpoint = '$apiPrefix/story/shared'; // /{shareToken}
+  
+  // Character Endpoints
+  static const String characterListEndpoint = '$apiPrefix/character/list';
+  static const String characterAddEndpoint = '$apiPrefix/character/add';
+  static const String characterGetEndpoint = '$apiPrefix/character'; // /{id}
+  static const String characterUpdateEndpoint = '$apiPrefix/character'; // /{id}
+  static const String characterDeleteEndpoint = '$apiPrefix/character'; // /{id}
+  
+  // Search Endpoints
+  static const String searchStoriesEndpoint = '$apiPrefix/search/stories';
+  static const String searchCharactersEndpoint = '$apiPrefix/search/characters';
+  static const String searchAllEndpoint = '$apiPrefix/search/all';
+  
   // Storage Keys
   static const String tokenKey = 'auth_token';
   static const String userIdKey = 'user_id';
