@@ -1,18 +1,16 @@
 package com.ruoyi.system.service.impl;
 
-import com.ruoyi.system.domain.StoryCharacter;
-import com.ruoyi.system.mapper.StoryCharacterMapper;
-
-// ...
+import com.ruoyi.project.domain.StoryCharacter; // updated import
+import com.ruoyi.project.mapper.StoryCharacterMapper; // updated import
 
 public class StoryServiceImpl {
 
-    private final StoryCharacterMapper storyCharacterMapper;
+    private StoryCharacterMapper storyCharacterMapper; // updated field
 
-    public StoryServiceImpl(StoryCharacterMapper storyCharacterMapper) {
-        this.storyCharacterMapper = storyCharacterMapper;
+    // other existing methods
+
+    public void someMethod() {
+        StoryCharacter myCharacter = storyCharacterMapper.selectCharacterById(1); // updated usage
+        // existing logic
     }
-
-    // Other methods that use StoryCharacter...
-
 }
