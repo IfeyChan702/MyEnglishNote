@@ -3,7 +3,7 @@
 -- ========================================
 
 -- 主角表
-CREATE TABLE IF NOT EXISTS `character` (
+CREATE TABLE IF NOT EXISTS `story_character` (
   id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主角ID',
   user_id BIGINT NOT NULL COMMENT '用户ID',
   name VARCHAR(100) NOT NULL COMMENT '主角名字',

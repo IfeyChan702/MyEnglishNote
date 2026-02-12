@@ -470,7 +470,8 @@ class ApiService {
         queryParams['characterId'] = characterId;
       }
       if (isFavorite != null) {
-        queryParams['isFavorite'] = isFavorite;
+        // ✅ 修复：将 bool 转换为 int
+        queryParams['isFavorite'] = isFavorite ? 1 : 0;
       }
 
       final response = await _dio.get(
@@ -656,9 +657,9 @@ class ApiService {
         data: {
           'name': name,
           if (description != null) 'description': description,
-          if (avatar != null) 'avatar': avatar,
-          if (personality != null) 'personality': personality,
-          if (background != null) 'background': background,
+          if (avatar != null) 'avatarUrl': avatar,  // ✅ 改为 'avatarUrl'
+          // if (personality != null) 'personality': personality,
+          // if (background != null) 'background': background,
         },
       );
 

@@ -5,8 +5,10 @@ import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import java.util.Date;
+import org.hibernate.annotations.Table;
 
+import javax.persistence.Entity;
+import java.util.Date;
 public class StoryCharacter extends BaseEntity {
     private static final long serialVersionUID = 1L;
 

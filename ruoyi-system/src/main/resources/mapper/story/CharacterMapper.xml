@@ -18,7 +18,7 @@
 
     <sql id="selectStoryCharacterVo">
         select id, user_id, name, description, avatar_url, story_count, created_at, updated_at, del_flag
-        from `character`
+        from `story_character`
     </sql>
 
     <select id="selectStoryCharacterById" parameterType="Long" resultMap="StoryCharacterResult">
@@ -45,7 +45,7 @@
     </select>
 
     <insert id="insertStoryCharacter" parameterType="com.ruoyi.system.domain.StoryCharacter" useGeneratedKeys="true" keyProperty="id">
-        insert into `character`
+        insert into `story_character`
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="userId != null">user_id,</if>
             <if test="name != null and name != ''">name,</if>
@@ -67,7 +67,7 @@
     </insert>
 
     <update id="updateStoryCharacter" parameterType="com.ruoyi.system.domain.StoryCharacter">
-        update `character`
+        update `story_character`
         <trim prefix="SET" suffixOverrides=",">
             <if test="name != null and name != ''">name = #{name},</if>
             <if test="description != null">description = #{description},</if>
@@ -78,22 +78,22 @@
     </update>
 
     <delete id="deleteStoryCharacterById" parameterType="Long">
-        update `character` set del_flag = '1' where id = #{id}
+        update `story_character` set del_flag = '1' where id = #{id}
     </delete>
 
     <delete id="deleteStoryCharacterByIds" parameterType="Long">
-        update `character` set del_flag = '1' where id in
+        update `story_character` set del_flag = '1' where id in
         <foreach item="id" collection="array" open="(" separator="," close=")">
             #{id}
         </foreach>
     </delete>
 
     <update id="incrementStoryCount" parameterType="Long">
-        update `character` set story_count = story_count + 1 where id = #{characterId}
+        update `story_character` set story_count = story_count + 1 where id = #{characterId}
     </update>
 
     <update id="decrementStoryCount" parameterType="Long">
-        update `character` set story_count = GREATEST(story_count - 1, 0) where id = #{characterId}
+        update `story_character` set story_count = GREATEST(story_count - 1, 0) where id = #{characterId}
     </update>
 
     <select id="searchStoryCharacters" resultMap="StoryCharacterResult">
