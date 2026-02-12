@@ -64,7 +64,7 @@ public class StoryController extends BaseController {
     @GetMapping("/list")
     public TableDataInfo list(
             @ApiParam("主角ID（可选）") @RequestParam(required = false) Long characterId,
-            @ApiParam("是否收藏（可选）") @RequestParam(required = false) Integer isFavorite) {
+            @ApiParam("是否收藏（可选）") @RequestParam(required = false) Boolean isFavorite) {
         try {
             Long userId = SecurityUtils.getUserId();
             startPage();
