@@ -1,6 +1,6 @@
 # MyEnglishNote Flutter App
 
-A comprehensive English learning note-taking mobile application with RAG (Retrieval-Augmented Generation) search and SRS (Spaced Repetition System) review capabilities.
+A comprehensive English learning note-taking mobile application with RAG (Retrieval-Augmented Generation) search, SRS (Spaced Repetition System) review, and AI story generation capabilities.
 
 ## Features
 
@@ -8,6 +8,8 @@ A comprehensive English learning note-taking mobile application with RAG (Retrie
 - **Note Management**: Create, read, update, and delete English learning notes
 - **RAG Search**: AI-powered semantic search across your notes using vector embeddings
 - **SRS Review**: Intelligent spaced repetition system for effective learning
+- **Story Generation**: Create AI-generated stories from photos with custom characters
+- **Character Management**: Create and manage story characters with personalities and backgrounds
 - **Cross-platform**: Supports Android, iOS, Web, Windows, macOS, and Linux
 
 ## Prerequisites
@@ -77,26 +79,35 @@ lib/
 ├── models/                         # Data models
 │   ├── note_model.dart
 │   ├── review_record_model.dart
-│   └── rag_response_model.dart
+│   ├── rag_response_model.dart
+│   ├── story_model.dart           # NEW: Story data model
+│   └── story_character_model.dart # NEW: Character data model
 ├── services/                       # Business logic services
-│   ├── api_service.dart           # Backend API integration
+│   ├── api_service.dart           # Backend API integration (updated with Story/Character APIs)
 │   ├── storage_service.dart       # Local data storage
 │   └── auth_service.dart          # Authentication management
 ├── screens/                        # UI screens
 │   ├── login_screen.dart
-│   ├── home_screen.dart
+│   ├── home_screen.dart           # Updated with Stories tab
 │   ├── notes_list_screen.dart
 │   ├── note_detail_screen.dart
 │   ├── add_note_screen.dart
 │   ├── rag_search_screen.dart
 │   ├── review_screen.dart
-│   └── profile_screen.dart
+│   ├── profile_screen.dart
+│   ├── story_list_screen.dart     # NEW: List of stories
+│   ├── story_detail_screen.dart   # NEW: Story details
+│   ├── generate_story_screen.dart # NEW: Generate story from photo
+│   ├── character_list_screen.dart # NEW: List of characters
+│   └── character_edit_screen.dart # NEW: Create/edit character
 ├── widgets/                        # Reusable UI components
 │   ├── note_card.dart
 │   ├── rag_result_card.dart
-│   └── review_item_card.dart
+│   ├── review_item_card.dart
+│   ├── story_card.dart            # NEW: Story display card
+│   └── character_card.dart        # NEW: Character display card
 └── utils/                          # Utility functions
-    ├── constants.dart
+    ├── constants.dart             # Updated with new API endpoints
     ├── validators.dart
     └── helpers.dart
 ```
@@ -110,6 +121,8 @@ lib/
 - **json_serializable**: JSON serialization
 - **intl**: Internationalization and date formatting
 - **logger**: Logging utility
+- **image_picker**: Select images from camera/gallery for story generation
+- **cached_network_image**: Efficient image loading and caching
 
 ## Building for Production
 

@@ -4,6 +4,8 @@ import 'package:logger/logger.dart';
 import '../models/note_model.dart';
 import '../models/review_record_model.dart';
 import '../models/rag_response_model.dart';
+import '../models/story_model.dart';
+import '../models/story_character_model.dart';
 import '../utils/constants.dart';
 import 'auth_service.dart';
 import 'package:uuid/uuid.dart';
@@ -414,6 +416,395 @@ class ApiService {
       }
     } catch (e) {
       _logger.e('Initialize review error: $e');
+      rethrow;
+    }
+  }
+
+  // ==================== Story APIs ====================
+
+  /// Generate a story from an image
+  Future<StoryModel> generateStory({
+    required String image,
+    required String imageType,
+    required int characterId,
+    String? title,
+  }) async {
+    try {
+      final response = await _dio.post(
+        AppConstants.storyGenerateEndpoint,
+        data: {
+          'image': image,
+          'imageType': imageType,
+          'characterId': characterId,
+          if (title != null) 'title': title,
+        },
+      );
+
+      final result = _handleResponse(response);
+      
+      if (result['code'] == 200) {
+        return StoryModel.fromJson(result['data']);
+      } else {
+        throw Exception(result['msg'] ?? 'Failed to generate story');
+      }
+    } catch (e) {
+      _logger.e('Generate story error: $e');
+      rethrow;
+    }
+  }
+
+  /// Get list of stories
+  Future<List<StoryModel>> getStories({
+    int pageNum = 1,
+    int pageSize = 10,
+    int? characterId,
+    bool? isFavorite,
+  }) async {
+    try {
+      final queryParams = {
+        'pageNum': pageNum,
+        'pageSize': pageSize,
+      };
+      
+      if (characterId != null) {
+        queryParams['characterId'] = characterId;
+      }
+      if (isFavorite != null) {
+        queryParams['isFavorite'] = isFavorite;
+      }
+
+      final response = await _dio.get(
+        AppConstants.storyListEndpoint,
+        queryParameters: queryParams,
+      );
+
+      final result = _handleResponse(response);
+      
+      if (result['code'] == 200) {
+        final rows = result['rows'] as List<dynamic>? ?? [];
+        return rows.map((json) => StoryModel.fromJson(json)).toList();
+      } else {
+        throw Exception(result['msg'] ?? 'Failed to fetch stories');
+      }
+    } catch (e) {
+      _logger.e('Get stories error: $e');
+      rethrow;
+    }
+  }
+
+  /// Get story by ID
+  Future<StoryModel> getStoryById(int id) async {
+    try {
+      final response = await _dio.get('${AppConstants.storyGetEndpoint}/$id');
+      final result = _handleResponse(response);
+      
+      if (result['code'] == 200) {
+        return StoryModel.fromJson(result['data']);
+      } else {
+        throw Exception(result['msg'] ?? 'Failed to fetch story');
+      }
+    } catch (e) {
+      _logger.e('Get story by ID error: $e');
+      rethrow;
+    }
+  }
+
+  /// Update a story
+  Future<StoryModel> updateStory(int id, {String? title, String? content}) async {
+    try {
+      final data = <String, dynamic>{};
+      if (title != null) data['title'] = title;
+      if (content != null) data['content'] = content;
+
+      final response = await _dio.put(
+        '${AppConstants.storyUpdateEndpoint}/$id',
+        data: data,
+      );
+
+      final result = _handleResponse(response);
+      
+      if (result['code'] == 200) {
+        return StoryModel.fromJson(result['data']);
+      } else {
+        throw Exception(result['msg'] ?? 'Failed to update story');
+      }
+    } catch (e) {
+      _logger.e('Update story error: $e');
+      rethrow;
+    }
+  }
+
+  /// Delete a story
+  Future<bool> deleteStory(int id) async {
+    try {
+      final response = await _dio.delete('${AppConstants.storyDeleteEndpoint}/$id');
+      final result = _handleResponse(response);
+      return result['code'] == 200;
+    } catch (e) {
+      _logger.e('Delete story error: $e');
+      rethrow;
+    }
+  }
+
+  /// Toggle favorite status of a story
+  Future<bool> toggleStoryFavorite(int id, bool isFavorite) async {
+    try {
+      final response = isFavorite
+          ? await _dio.post('${AppConstants.storyFavoriteEndpoint}/$id/favorite')
+          : await _dio.delete('${AppConstants.storyFavoriteEndpoint}/$id/favorite');
+      
+      final result = _handleResponse(response);
+      return result['code'] == 200;
+    } catch (e) {
+      _logger.e('Toggle story favorite error: $e');
+      rethrow;
+    }
+  }
+
+  /// Share a story
+  Future<String> shareStory(int id) async {
+    try {
+      final response = await _dio.post('${AppConstants.storyShareEndpoint}/$id/share');
+      final result = _handleResponse(response);
+      
+      if (result['code'] == 200) {
+        return result['data']['shareToken'] as String;
+      } else {
+        throw Exception(result['msg'] ?? 'Failed to share story');
+      }
+    } catch (e) {
+      _logger.e('Share story error: $e');
+      rethrow;
+    }
+  }
+
+  /// Get shared story by token
+  Future<StoryModel> getSharedStory(String shareToken) async {
+    try {
+      final response = await _dio.get('${AppConstants.storySharedEndpoint}/$shareToken');
+      final result = _handleResponse(response);
+      
+      if (result['code'] == 200) {
+        return StoryModel.fromJson(result['data']);
+      } else {
+        throw Exception(result['msg'] ?? 'Failed to fetch shared story');
+      }
+    } catch (e) {
+      _logger.e('Get shared story error: $e');
+      rethrow;
+    }
+  }
+
+  // ==================== Character APIs ====================
+
+  /// Get list of characters
+  Future<List<StoryCharacterModel>> getCharacters({
+    int pageNum = 1,
+    int pageSize = 10,
+  }) async {
+    try {
+      final response = await _dio.get(
+        AppConstants.characterListEndpoint,
+        queryParameters: {
+          'pageNum': pageNum,
+          'pageSize': pageSize,
+        },
+      );
+
+      final result = _handleResponse(response);
+      
+      if (result['code'] == 200) {
+        final rows = result['rows'] as List<dynamic>? ?? [];
+        return rows.map((json) => StoryCharacterModel.fromJson(json)).toList();
+      } else {
+        throw Exception(result['msg'] ?? 'Failed to fetch characters');
+      }
+    } catch (e) {
+      _logger.e('Get characters error: $e');
+      rethrow;
+    }
+  }
+
+  /// Get character by ID
+  Future<StoryCharacterModel> getCharacterById(int id) async {
+    try {
+      final response = await _dio.get('${AppConstants.characterGetEndpoint}/$id');
+      final result = _handleResponse(response);
+      
+      if (result['code'] == 200) {
+        return StoryCharacterModel.fromJson(result['data']);
+      } else {
+        throw Exception(result['msg'] ?? 'Failed to fetch character');
+      }
+    } catch (e) {
+      _logger.e('Get character by ID error: $e');
+      rethrow;
+    }
+  }
+
+  /// Create a new character
+  Future<StoryCharacterModel> createCharacter({
+    required String name,
+    String? description,
+    String? avatar,
+    String? personality,
+    String? background,
+  }) async {
+    try {
+      final response = await _dio.post(
+        AppConstants.characterAddEndpoint,
+        data: {
+          'name': name,
+          if (description != null) 'description': description,
+          if (avatar != null) 'avatar': avatar,
+          if (personality != null) 'personality': personality,
+          if (background != null) 'background': background,
+        },
+      );
+
+      final result = _handleResponse(response);
+      
+      if (result['code'] == 200) {
+        return StoryCharacterModel.fromJson(result['data']);
+      } else {
+        throw Exception(result['msg'] ?? 'Failed to create character');
+      }
+    } catch (e) {
+      _logger.e('Create character error: $e');
+      rethrow;
+    }
+  }
+
+  /// Update a character
+  Future<StoryCharacterModel> updateCharacter(
+    int id, {
+    String? name,
+    String? description,
+    String? avatar,
+    String? personality,
+    String? background,
+  }) async {
+    try {
+      final data = <String, dynamic>{};
+      if (name != null) data['name'] = name;
+      if (description != null) data['description'] = description;
+      if (avatar != null) data['avatar'] = avatar;
+      if (personality != null) data['personality'] = personality;
+      if (background != null) data['background'] = background;
+
+      final response = await _dio.put(
+        '${AppConstants.characterUpdateEndpoint}/$id',
+        data: data,
+      );
+
+      final result = _handleResponse(response);
+      
+      if (result['code'] == 200) {
+        return StoryCharacterModel.fromJson(result['data']);
+      } else {
+        throw Exception(result['msg'] ?? 'Failed to update character');
+      }
+    } catch (e) {
+      _logger.e('Update character error: $e');
+      rethrow;
+    }
+  }
+
+  /// Delete a character
+  Future<bool> deleteCharacter(int id) async {
+    try {
+      final response = await _dio.delete('${AppConstants.characterDeleteEndpoint}/$id');
+      final result = _handleResponse(response);
+      return result['code'] == 200;
+    } catch (e) {
+      _logger.e('Delete character error: $e');
+      rethrow;
+    }
+  }
+
+  // ==================== Search APIs ====================
+
+  /// Search stories
+  Future<List<StoryModel>> searchStories(String keyword, {int pageNum = 1, int pageSize = 10}) async {
+    try {
+      final response = await _dio.post(
+        AppConstants.searchStoriesEndpoint,
+        data: {
+          'keyword': keyword,
+          'pageNum': pageNum,
+          'pageSize': pageSize,
+        },
+      );
+
+      final result = _handleResponse(response);
+      
+      if (result['code'] == 200) {
+        final rows = result['rows'] as List<dynamic>? ?? [];
+        return rows.map((json) => StoryModel.fromJson(json)).toList();
+      } else {
+        throw Exception(result['msg'] ?? 'Failed to search stories');
+      }
+    } catch (e) {
+      _logger.e('Search stories error: $e');
+      rethrow;
+    }
+  }
+
+  /// Search characters
+  Future<List<StoryCharacterModel>> searchCharacters(String keyword, {int pageNum = 1, int pageSize = 10}) async {
+    try {
+      final response = await _dio.post(
+        AppConstants.searchCharactersEndpoint,
+        data: {
+          'keyword': keyword,
+          'pageNum': pageNum,
+          'pageSize': pageSize,
+        },
+      );
+
+      final result = _handleResponse(response);
+      
+      if (result['code'] == 200) {
+        final rows = result['rows'] as List<dynamic>? ?? [];
+        return rows.map((json) => StoryCharacterModel.fromJson(json)).toList();
+      } else {
+        throw Exception(result['msg'] ?? 'Failed to search characters');
+      }
+    } catch (e) {
+      _logger.e('Search characters error: $e');
+      rethrow;
+    }
+  }
+
+  /// Search all (stories and characters)
+  Future<Map<String, dynamic>> searchAll(String keyword, {int pageNum = 1, int pageSize = 10}) async {
+    try {
+      final response = await _dio.post(
+        AppConstants.searchAllEndpoint,
+        data: {
+          'keyword': keyword,
+          'pageNum': pageNum,
+          'pageSize': pageSize,
+        },
+      );
+
+      final result = _handleResponse(response);
+      
+      if (result['code'] == 200) {
+        final data = result['data'] as Map<String, dynamic>;
+        return {
+          'stories': (data['stories'] as List<dynamic>?)
+              ?.map((json) => StoryModel.fromJson(json))
+              .toList() ?? [],
+          'characters': (data['characters'] as List<dynamic>?)
+              ?.map((json) => StoryCharacterModel.fromJson(json))
+              .toList() ?? [],
+        };
+      } else {
+        throw Exception(result['msg'] ?? 'Failed to search');
+      }
+    } catch (e) {
+      _logger.e('Search all error: $e');
       rethrow;
     }
   }

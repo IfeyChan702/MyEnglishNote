@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'notes_list_screen.dart';
+import 'story_list_screen.dart';
 import 'rag_search_screen.dart';
 import 'review_screen.dart';
 import 'profile_screen.dart';
@@ -18,6 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _screens = [
     const NotesListScreen(),
+    const StoryListScreen(),
     const RagSearchScreen(),
     const ReviewScreen(),
     const ProfileScreen(),
@@ -41,6 +43,10 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.note),
             label: 'Notes',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.auto_stories),
+            label: 'Stories',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.search),

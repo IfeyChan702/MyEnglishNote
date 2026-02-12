@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
+import 'character_list_screen.dart';
 
 /// Profile screen
 class ProfileScreen extends StatefulWidget {
@@ -100,6 +101,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
           const SizedBox(height: 32),
           const Divider(),
+          ListTile(
+            leading: const Icon(Icons.people),
+            title: const Text('Manage Characters'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CharacterListScreen(),
+                ),
+              );
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('Settings'),
