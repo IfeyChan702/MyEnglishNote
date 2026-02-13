@@ -30,7 +30,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                s.embedding, s.embedding_model, s.is_favorite, s.view_count, s.share_count, 
                s.share_token, s.created_at, s.updated_at, s.del_flag, c.name as character_name
         from story s
-        left join `character` c on s.character_id = c.id
+        left join `story_character` c on s.character_id = c.id
     </sql>
 
     <select id="selectStoryById" parameterType="Long" resultMap="StoryResult">
@@ -133,7 +133,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="searchSimilarStories" resultMap="StoryResult">
         select s.*, c.name as character_name, 0 as similarity_score
         from story s
-        left join `character` c on s.character_id = c.id
+        left join `story_character` c on s.character_id = c.id
         where s.user_id = #{userId} and s.del_flag = '0' and s.embedding is not null
         order by s.created_at desc
         limit #{limit}

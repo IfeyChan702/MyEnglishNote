@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/story_character_model.dart';
@@ -19,8 +21,9 @@ class _GenerateStoryScreenState extends State<GenerateStoryScreen> {
   final ApiService _apiService = ApiService();
   final ImagePicker _imagePicker = ImagePicker();
   final TextEditingController _titleController = TextEditingController();
-  
-  File? _selectedImage;
+
+  File? _selectedImage;            // 移动端
+  Uint8List? _selectedImageWeb;    // Web 用
   StoryCharacterModel? _selectedCharacter;
   List<StoryCharacterModel> _characters = [];
   bool _isLoadingCharacters = false;
@@ -69,9 +72,18 @@ class _GenerateStoryScreenState extends State<GenerateStoryScreen> {
       );
 
       if (image != null) {
-        setState(() {
-          _selectedImage = File(image.path);
-        });
+        if (kIsWeb) {
+          final bytes = await image.readAsBytes();
+          setState(() {
+            _selectedImageWeb = bytes;
+            _selectedImage = null;
+          });
+        } else {
+          setState(() {
+            _selectedImage = File(image.path);
+            _selectedImageWeb = null;
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -114,7 +126,8 @@ class _GenerateStoryScreenState extends State<GenerateStoryScreen> {
   }
 
   Future<void> _generateStory() async {
-    if (_selectedImage == null) {
+    // 判断图片
+    if (_selectedImage == null && _selectedImageWeb == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select an image'),
@@ -141,8 +154,13 @@ class _GenerateStoryScreenState extends State<GenerateStoryScreen> {
 
     try {
       // Convert image to base64
-      final bytes = await _selectedImage!.readAsBytes();
-      final base64Image = base64Encode(bytes);
+      String base64Image;
+      if (kIsWeb) {
+        base64Image = base64Encode(_selectedImageWeb!);
+      } else {
+        final bytes = await _selectedImage!.readAsBytes();
+        base64Image = base64Encode(bytes);
+      }
 
       // Generate story
       final story = await _apiService.generateStory(
@@ -189,36 +207,36 @@ class _GenerateStoryScreenState extends State<GenerateStoryScreen> {
           child: _characters.isEmpty
               ? const Center(child: Text('No characters available'))
               : ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: _characters.length,
-                  itemBuilder: (context, index) {
-                    final character = _characters[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage: character.avatar != null
-                            ? NetworkImage(character.avatar!)
-                            : null,
-                        child: character.avatar == null
-                            ? Text(character.name[0].toUpperCase())
-                            : null,
-                      ),
-                      title: Text(character.name),
-                      subtitle: character.description != null
-                          ? Text(
-                              character.description!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            )
-                          : null,
-                      onTap: () {
-                        setState(() {
-                          _selectedCharacter = character;
-                        });
-                        Navigator.pop(context);
-                      },
-                    );
-                  },
+            shrinkWrap: true,
+            itemCount: _characters.length,
+            itemBuilder: (context, index) {
+              final character = _characters[index];
+              return ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: character.avatar != null
+                      ? NetworkImage(character.avatar!)
+                      : null,
+                  child: character.avatar == null
+                      ? Text(character.name[0].toUpperCase())
+                      : null,
                 ),
+                title: Text(character.name),
+                subtitle: character.description != null
+                    ? Text(
+                  character.description!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                )
+                    : null,
+                onTap: () {
+                  setState(() {
+                    _selectedCharacter = character;
+                  });
+                  Navigator.pop(context);
+                },
+              );
+            },
+          ),
         ),
         actions: [
           TextButton(
@@ -234,7 +252,6 @@ class _GenerateStoryScreenState extends State<GenerateStoryScreen> {
                   builder: (context) => const CharacterEditScreen(),
                 ),
               );
-              
               if (result == true) {
                 _loadCharacters();
               }
@@ -243,6 +260,52 @@ class _GenerateStoryScreenState extends State<GenerateStoryScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _imagePreview() {
+    if (kIsWeb) {
+      if (_selectedImageWeb != null) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.memory(
+            _selectedImageWeb!,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: 250,
+          ),
+        );
+      }
+    } else {
+      if (_selectedImage != null) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.file(
+            _selectedImage!,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: 250,
+          ),
+        );
+      }
+    }
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.add_photo_alternate,
+          size: 64,
+          color: Colors.grey[400],
+        ),
+        const SizedBox(height: AppConstants.smallPadding),
+        Text(
+          'Tap to select image',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.grey[600],
+          ),
+        ),
+      ],
     );
   }
 
@@ -267,32 +330,7 @@ class _GenerateStoryScreenState extends State<GenerateStoryScreen> {
                     borderRadius: BorderRadius.circular(8),
                     color: Colors.grey[200],
                   ),
-                  child: _selectedImage != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.file(
-                            _selectedImage!,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      : Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.add_photo_alternate,
-                              size: 64,
-                              color: Colors.grey[400],
-                            ),
-                            const SizedBox(height: AppConstants.smallPadding),
-                            Text(
-                              'Tap to select image',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
+                  child: _imagePreview(),
                 ),
               ),
             ),
@@ -317,13 +355,13 @@ class _GenerateStoryScreenState extends State<GenerateStoryScreen> {
               child: ListTile(
                 leading: _selectedCharacter?.avatar != null
                     ? CircleAvatar(
-                        backgroundImage: NetworkImage(_selectedCharacter!.avatar!),
-                      )
+                  backgroundImage: NetworkImage(_selectedCharacter!.avatar!),
+                )
                     : CircleAvatar(
-                        child: _selectedCharacter != null
-                            ? Text(_selectedCharacter!.name[0].toUpperCase())
-                            : const Icon(Icons.person),
-                      ),
+                  child: _selectedCharacter != null
+                      ? Text(_selectedCharacter!.name[0].toUpperCase())
+                      : const Icon(Icons.person),
+                ),
                 title: Text(
                   _selectedCharacter?.name ?? 'Select Character',
                   style: TextStyle(
@@ -332,10 +370,10 @@ class _GenerateStoryScreenState extends State<GenerateStoryScreen> {
                 ),
                 subtitle: _selectedCharacter?.description != null
                     ? Text(
-                        _selectedCharacter!.description!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      )
+                  _selectedCharacter!.description!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                )
                     : const Text('Choose who will be in your story'),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: _isGenerating ? null : _showCharacterSelectionDialog,
@@ -375,17 +413,17 @@ class _GenerateStoryScreenState extends State<GenerateStoryScreen> {
               ),
               child: _isGenerating
                   ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
                   : const Text(
-                      'Generate Story',
-                      style: TextStyle(fontSize: 16, color: Colors.white),
-                    ),
+                'Generate Story',
+                style: TextStyle(fontSize: 16, color: Colors.white),
+              ),
             ),
 
             if (_errorMessage != null) ...[
